@@ -173,7 +173,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2022-01-14 20:22:24 / 修改时间：21:55:55" itemprop="dateCreated datePublished" datetime="2022-01-14T20:22:24+08:00">2022-01-14</time>
+              <time title="创建时间：2022-01-14 20:22:24 / 修改时间：23:07:40" itemprop="dateCreated datePublished" datetime="2022-01-14T20:22:24+08:00">2022-01-14</time>
             </span>
 
           
@@ -230,8 +230,36 @@
 
 
 
-<p>修改 _config.yml</p>
-<p>未完待续。。。</p>
+<p>修改 _config.yml，repo是github项目的地址，新建项目时会给出，可以使用https或ssh，此处使用ssh（可以实现免密登录）</p>
+<p><img src="/images/6.png"></p>
+<p>github中有生成ssh密钥的教程，在git bash中输入如下命令，-C 后面的类似注释，会出现几个选项，直接回车就行</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">ssh</span>-keygen -t rsa -b <span class="number">4096</span> -C <span class="string">&quot;your_email@example.com&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>在对应的目录下会生成公钥和私钥</p>
+<p>将公钥拷贝到github上</p>
+<p>设置中有一项是 <code>SSH and GPG keys</code> </p>
+<p>在那可以新增ssh密钥，将公钥复制进去就行（public）</p>
+<p>可以测试ssh连接github，连上了会提示成功</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -T <span class="symbol">git@</span>github.com</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/7.png"></p>
+<p>生成静态文件后，使用 <code>hexo deploy</code> 即可完成部署</p>
+<h1 id="更换主题"><a href="#更换主题" class="headerlink" title="更换主题"></a>更换主题</h1><p>我选择了next主题，先将仓库克隆到本地，放在 ./themes/next 目录下</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https:<span class="regexp">//gi</span>thub.com<span class="regexp">/theme-next/</span>hexo-theme-<span class="keyword">next</span> themes/<span class="keyword">next</span></span><br></pre></td></tr></table></figure>
+
+<p>在 ./_config.yml 中，修改theme 为 next</p>
+<p><img src="/images/8.png"></p>
+<p>这个时候已经换好主题了，但还可以做一些别的修改，比如将 ./_config.yml 中的标题、副标题、描述、作者、语言时区等等，改为想要的</p>
+<p>在 ./themes/next/_config.yml 中可以修改一些样式，如头像，next主题提供了四种sheme，也在这修改</p>
+<p><img src="/images/9.png"></p>
+<p>头像是avatar ，url 是 相对 ./themes/next/source/ 的路径，把文件放到相应目录即可，rounded为true表示头像是圆的，rotated为true表示鼠标放在头像上头像会旋转</p>
+<p><img src="/images/10.png"></p>
+<p>生成静态文件后重新部署即可更换主题</p>
+<h1 id="文章中插入图片"><a href="#文章中插入图片" class="headerlink" title="文章中插入图片"></a>文章中插入图片</h1><p>网上一查，三四篇一样的，没怎么看懂，以后再研究那种方法。从b站学了一手，在 ./source/ 目录下新建一个 images 目录，然后将图片放在这里面</p>
+<p><img src="images/11.png"></p>
+<p>写 markdown 的时候如下，无法预览图片，只能在部署后查看</p>
+<p><img src="images/12.png"></p>
+<p><img src="images/13.png"></p>
 
       
     </div>
