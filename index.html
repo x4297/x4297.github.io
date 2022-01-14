@@ -118,7 +118,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">2</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">3</span></a>
 
   </li>
   </ul>
@@ -144,6 +144,99 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://x4297.github.io/2022/01/14/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Yuumi.jpg">
+      <meta itemprop="name" content="x4297">
+      <meta itemprop="description" content="开摆!">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="x4297's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/01/14/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/" class="post-title-link" itemprop="url">使用hexo搭建博客</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-01-14 20:22:24 / 修改时间：21:50:49" itemprop="dateCreated datePublished" datetime="2022-01-14T20:22:24+08:00">2022-01-14</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>本文记录了如何在windows系统中使用hexo搭建博客，并部署到github pages</p>
+<h1 id="安装-git-和-node-js"><a href="#安装-git-和-node-js" class="headerlink" title="安装 git 和 node.js"></a>安装 git 和 node.js</h1><p>git可以在国内镜像下载，以下为清华大学开源软件镜像站git的下载地址</p>
+<p><a target="_blank" rel="noopener" href="https://mirrors.tuna.tsinghua.edu.cn/github-release/git-for-windows/git/">https://mirrors.tuna.tsinghua.edu.cn/github-release/git-for-windows/git/</a></p>
+<p>使用 git bash 可以在 windows 上使用 linux 的命令</p>
+<p>在<a target="_blank" rel="noopener" href="https://nodejs.org/en/">node.js官网</a>下载安装包，下载速度还行，安装时使用默认配置</p>
+<p>使用 <code>node -v</code> 查看node.js版本，使用<code>npm -v</code> 查看npm（Node Package Manager）版本，验证是否安装成功</p>
+<p><img src="/images/1.png"></p>
+<h1 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h1><p>国外的源一般都比较慢，所以先给npm换源（淘宝源）</p>
+<p><code>npm config set registry https://registry.npm.taobao.org</code></p>
+<p>另一种换源方法是使用cnpm</p>
+<p><code>npm install -g cnpm --registry=https://registry.npm.taobao.org</code></p>
+<p>我选择直接换源</p>
+<p>使用<code>npm config get registry</code> 可以查看当前使用的源</p>
+<p><img src="/images/2.png"></p>
+<p>接下来就可以安装hexo了，-g表示全局安装</p>
+<p><code>npm install -g hexo-cli</code></p>
+<p>全局安装，网上的说法</p>
+<p><code>如果你想将其作为一个命令行工具，那么你应该将其安装到全局。这种安装方式后可以让你在任何目录下使用这个包。</code></p>
+<p>新建一个文件夹，如<code>blog</code> ，将当前工作目录切换为刚创建的文件夹，输入<code>hexo init</code> 初始化，初始化时会从github上下载一些东西，初始化后文件夹内容如下，其中 _config.yml 是一个比较重要的配置文件</p>
+<p><img src="/images/3.png"></p>
+<p>使用 <code>hexo new &quot;使用hexo搭建博客&quot;</code> 会在 ./source/_posts/ 下新建一个markdown文件</p>
+<p><img src="/images/4.png"></p>
+<p>hello-world.md 是初始化后自动生成的，TEST-MTYSQL.md 是我之前创建的</p>
+<p>编辑相应的 markdown 文件（Typora，vscode，Mark Text，用的不多，不知道哪个比较好用）</p>
+<p>切回之前的目录</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo <span class="keyword">generate</span></span><br></pre></td></tr></table></figure>
+
+<p>重新生成静态文件</p>
+<figure class="highlight plaintext"><figcaption><span>server``` 在本地预览，ctrl+c 终止进程</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">![](/images/5.png)</span><br><span class="line"></span><br><span class="line">hexo的一些命令可以简写，有点像gdb</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>hexo server -&gt; hexo s<br>hexo generate -&gt; hexo g<br>hexo deploy -&gt; hexo d  # 部署，之后会用到</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 部署到github pages</span></span><br><span class="line"></span><br><span class="line">需要一个github的账号</span><br><span class="line"></span><br><span class="line">创建一个仓库，仓库名  \&lt;any\&gt;.github.io</span><br><span class="line"></span><br><span class="line">如 x4297.github.io</span><br><span class="line"></span><br><span class="line">之后访问博客就访问 https:<span class="regexp">//</span>x4297.github.io</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">安装 hexo-deployer-git</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>npm install hexo-deployer.git –save</p>
+<p>```</p>
+<p>修改 _config.yml</p>
+<p>未完待续。。。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -378,7 +471,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-count">3</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
