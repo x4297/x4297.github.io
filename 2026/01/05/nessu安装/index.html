@@ -1,0 +1,181 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>nessus安装 | x4297's blog</title><meta name="author" content="x4297"><meta name="copyright" content="x4297"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Overview windows中安装nessus，linux基本类似 下载并安装 bing搜一下直接能找到下载页面，或者是后面获取了激活码也会给链接。安装nessus，程序安装完后进入web界面初始化。依次选择离线注册、Managed Scanner、Tenable Security Center，然后准备离线激活 获取激活码以及插件集 官网中all products里面找nessus esse">
+<meta property="og:type" content="article">
+<meta property="og:title" content="nessus安装">
+<meta property="og:url" content="https://x4297.github.io/2026/01/05/nessu%E5%AE%89%E8%A3%85/index.html">
+<meta property="og:site_name" content="x4297&#39;s blog">
+<meta property="og:description" content="Overview windows中安装nessus，linux基本类似 下载并安装 bing搜一下直接能找到下载页面，或者是后面获取了激活码也会给链接。安装nessus，程序安装完后进入web界面初始化。依次选择离线注册、Managed Scanner、Tenable Security Center，然后准备离线激活 获取激活码以及插件集 官网中all products里面找nessus esse">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://x4297.github.io/img/Yuumi.jpg">
+<meta property="article:published_time" content="2026-01-05T15:00:00.000Z">
+<meta property="article:modified_time" content="2026-01-05T15:00:00.000Z">
+<meta property="article:author" content="x4297">
+<meta property="article:tag" content="备忘录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://x4297.github.io/img/Yuumi.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "nessus安装",
+  "url": "https://x4297.github.io/2026/01/05/nessu%E5%AE%89%E8%A3%85/",
+  "image": "https://x4297.github.io/img/Yuumi.jpg",
+  "datePublished": "2026-01-05T15:00:00.000Z",
+  "dateModified": "2026-01-05T15:00:00.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "x4297",
+      "url": "https://x4297.github.io/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://x4297.github.io/2026/01/05/nessu%E5%AE%89%E8%A3%85/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'nessus安装',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">x4297's blog</span></a><a class="nav-page-title" href="/"><span class="site-name">nessus安装</span></a></span><div id="menus"></div></nav><div id="post-info"><h1 class="post-title">nessus安装</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-05T15:00:00.000Z" title="发表于 2026-01-05 23:00:00">2026-01-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-05T15:00:00.000Z" title="更新于 2026-01-05 23:00:00">2026-01-05</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8/">信息安全</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="Overview">Overview</h2>
+<p>windows中安装nessus，linux基本类似</p>
+<h2 id="下载并安装">下载并安装</h2>
+<p>bing搜一下直接能找到<a target="_blank" rel="noopener" href="https://www.tenable.com/downloads/nessus?loginAttempted=true">下载页面</a>，或者是后面获取了激活码也会给链接。安装nessus，程序安装完后进入web界面初始化。依次选择离线注册、Managed Scanner、Tenable Security Center，然后准备离线激活</p>
+<h2 id="获取激活码以及插件集">获取激活码以及插件集</h2>
+<p>官网中all products里面找nessus essentials，网上找临时邮箱获取激活码，邮箱只需要收一封邮件即可，邮件中即是激活码。管理员权限打开powershell，<code>nessuscli fetch --challenge</code>，获取challenge code，可以简单认为类似机器特征码，此时会给出下载插件和license的<a target="_blank" rel="noopener" href="https://plugins.nessus.org/v2/offline.php">网站地址</a>，使用activation code和challenge code，可以下载插件（规则库）和许可证</p>
+<h2 id="离线激活">离线激活</h2>
+<p>刚才获取的license是一个功能受限的许可，只能扫描少量目标（ip），也是通过nessuscli进行离线激活<code>./nessuscli fetch --register-offline &lt;license.file&gt;</code>，这一步如果要进行破解的话，感觉没什么用，破解失败的话可以重来一遍，加上这个命令。</p>
+<p>首先是关闭服务，服务名是Tenable Nessus，可以在任务管理器或者用net stop关闭。更新规则库（安装过程中观察包括了插件集和模板），以下命令cwd与nessuscli同目录，规则库文件和授权文件所处目录相同，均以管理员权限执行。</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./nessuscli update &lt;plugin archive&gt;</span><br></pre></td></tr></table></figure>
+<p>此时网上有的教程会让记录template version，但看web界面信息，plugin set和template是两个东西，激活essentials的授权时，版本号二者不一致（另一种获取版本号的方法），有的文章提到可以从<a target="_blank" rel="noopener" href="https://plugins.nessus.org/v2/plugins.php">下载插件的网站其他页面</a>获取版本号，目前观察三者均不一样，倾向于先用essentials的授权激活，使用该版本号。但后面感觉这个版本号也没什么用，能想到的用途只有提醒规则库太久没更新。</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">rm</span> .\nessus\.plugin_feed_info.inc  <span class="comment"># 如有</span></span><br><span class="line">notepad .\nessus\plugin_feed_info.inc  <span class="comment"># 文件内容稍后给出</span></span><br><span class="line">notepad .\nessus\plugins\plugin_feed_info.inc  <span class="comment"># 内容同上</span></span><br></pre></td></tr></table></figure>
+<p>plugin_feed_info.inc内容如下，版本号可以用template的version，essentials的plugin版本号也试过可以，网站给的没试过，但猜想这个版本号无实际作用。这一步就是修改nessus的许可类型，取消功能限制。</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">PLUGIN_SET = <span class="string">&quot;202511181632&quot;</span>;</span><br><span class="line">PLUGIN_FEED = <span class="string">&quot;ProfessionalFeed (Direct)&quot;</span>;</span><br><span class="line">PLUGIN_FEED_TRANSPORT = <span class="string">&quot;Tenable Network Security Lightning&quot;</span>;</span><br></pre></td></tr></table></figure>
+<p>给配置文件设置保护，防止被删除，有个说法是每次重启nessus都会重新生成上述文件并删除插件，为了避免需要重新破解，给关键文件加上特殊的ntfs属性</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">attrib +<span class="built_in">r</span> +<span class="built_in">h</span> +s .\nessus\plugin_feed_info.inc</span><br><span class="line">attrib +<span class="built_in">r</span> +<span class="built_in">h</span> +s .\nessus\plugins\*</span><br><span class="line">attrib <span class="literal">-r</span> <span class="literal">-h</span> <span class="literal">-s</span> .\nessus\plugins\plugin_feed_info.inc</span><br></pre></td></tr></table></figure>
+<h2 id="修复文件权限">修复文件权限</h2>
+<p>到上面其实和网上的教程基本一致，可能某些细节不太一样，但按网上的教程安装之后，一直显示未安装插件，也就是实际上的规则库，折腾了半天，最终结合网上其他文章找到了灵感，怀疑是windows文件系统权限问题，nessus安装目录下，有的点进去直接显示没权限，一开始是一个目录一个目录点进去获取的权限，后来尝试了让文件和子目录继承安装根目录的权限，也是可行的，nessus版本是10.11.1。tenable目录，属性-安全-高级-修改权限-使用可从此对象继承的权限项目替换所有子对象的权限项目，这句话很拗口，其实没怎么看懂，但是感觉就是我要的意思。最后启动nessus服务就行了，启动完之后会编译插件，需要一段时间。</p>
+<p>大体上还是古法破解，主要是多了一步重新继承文件权限，但就是这一步卡了我几天，图片的话想了一下没什么好截的，直接纯文字记录算了。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://x4297.github.io">x4297</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://x4297.github.io/2026/01/05/nessu%E5%AE%89%E8%A3%85/">https://x4297.github.io/2026/01/05/nessu%E5%AE%89%E8%A3%85/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://x4297.github.io" target="_blank">x4297's blog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%A4%87%E5%BF%98%E5%BD%95/">备忘录</a></div><div class="post-share"><div class="social-share" data-image="/img/Yuumi.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/09/20/python%E5%8C%85%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7uv/" title="python包管理工具uv"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">python包管理工具uv</div></div><div class="info-2"><div class="info-item-1">安装 uv使用rust编写，底层仍然依赖pip。使用起来感觉类似npm、cargo等工具，之前学习过rust的使用，配置了对应的环境，所以直接从源码编译 1cargo install --git https://github.com/astral-sh/uv uv 修改存储位置 主要有4个位置，之前使用idea，新建项目默认使用maven wrapper，导致本地安装的maven配置不生效，每个项目都要修改本地仓库和远程仓库地址，后来想到直接创建windows目录的符号链接，把c盘目录指向其他盘就行 uv里面和存储文件相关的主要有cache、python、tool以及tool安装的可执行文件，其中tool安装的可执行文件目录最好加入path变量，tool指的是sqlmap这种安装后可以直接使用的包。python就是可以管理多个版本的python，但我一般用不到，将几个目录全都指向其他盘同一个目录即可。mklink是cmd特有的，powershell无法执行 12345uv python diruv cache diruv tool dirmklink /D...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2022/05/03/docker%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" title="docker的简单使用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-03</div><div class="info-item-2">docker的简单使用</div></div><div class="info-2"><div class="info-item-1">kali 中安装 dockerapt安装docker官网并没有在kali上面安装docker的指南，但是有 debian的，不过在kali上有点小问题。直接用apt装，用一段时间再说。（docker.io设置代理拉镜像有点问题，官方的就没问题，不知道是不是docker.io的问题） 1sudo apt install docker.io  使用apt搜索docker开头的软件包，有个包就叫docker，但装完之后没什么反应，docker.io应该是最重要的，还能找到一些插件，比如docker-compose 1apt search docker | grep ^docker  docker官网指南，在debian上安装dockerdocker官网有给安装的命令 https://docs.docker.com/engine/install/debian/（kali是基于debian的） docker官网上，把docker，docker.io等 称为 old versions，所以要先删除旧版本 1sudo apt-get remove docker docker-engine...</div></div></div></a><a class="pagination-related" href="/2022/04/28/git%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" title="git的简单使用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-04-28</div><div class="info-item-2">git的简单使用</div></div><div class="info-2"><div class="info-item-1">1Git is a free and open source distributed version control system designed to handle everything from small to very large projects with speed and efficiency.  git是一个免费且开源的分布式版本控制系统 git官网上提供了文档，以及免费阅读的书籍，git更具体的用法可以去查看文档，本文只涉及简单的用法 清华大学镜像，git下载地址https://mirrors.tuna.tsinghua.edu.cn/github-release/git-for-windows/git/ 环境操作系统：win 10 git版本：  shell： git bash 初始化仓库 git init12git init# git-init - Create an empty Git repository or reinitialize an existing one   git...</div></div></div></a><a class="pagination-related" href="/2025/08/12/web%E7%8B%97%E5%A4%87%E5%BF%98%E5%BD%95/" title="web狗备忘录"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-08-12</div><div class="info-item-2">web狗备忘录</div></div><div class="info-2"><div class="info-item-1">死去的记忆 sql注入12345678910111213141516&#x27; or 1=1#  |  -1 or 1=1#if(1, 2, 3) // 3元运算符 expression ? true : falseunion 联合查询，order by 5 判断列数 或 select 1, 2, 3, 4, 5 判断列数报错注入布尔时间宽字节/符注入   gbk  %81%27  大于128二次编码二次注入零字节截断 %00/**/ 空白 代替空格 括号dnslog 外带 load_file()  // 开头的字符串当作url  dnslog.cn  windowssql语句内部可以使用16进制  mysql123456789101112131415161718192021222324252627282930313233343536373839select * from table /*!12345where id = 1*/;  # mysql 五位版本号@@datadirselect load_file($path) into dumpfile $path;/into...</div></div></div></a><a class="pagination-related" href="/2025/09/20/python%E5%8C%85%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7uv/" title="python包管理工具uv"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-09-20</div><div class="info-item-2">python包管理工具uv</div></div><div class="info-2"><div class="info-item-1">安装 uv使用rust编写，底层仍然依赖pip。使用起来感觉类似npm、cargo等工具，之前学习过rust的使用，配置了对应的环境，所以直接从源码编译 1cargo install --git https://github.com/astral-sh/uv uv 修改存储位置 主要有4个位置，之前使用idea，新建项目默认使用maven wrapper，导致本地安装的maven配置不生效，每个项目都要修改本地仓库和远程仓库地址，后来想到直接创建windows目录的符号链接，把c盘目录指向其他盘就行 uv里面和存储文件相关的主要有cache、python、tool以及tool安装的可执行文件，其中tool安装的可执行文件目录最好加入path变量，tool指的是sqlmap这种安装后可以直接使用的包。python就是可以管理多个版本的python，但我一般用不到，将几个目录全都指向其他盘同一个目录即可。mklink是cmd特有的，powershell无法执行 12345uv python diruv cache diruv tool dirmklink /D...</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/Yuumi.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">x4297</div><div class="author-info-description">开摆!</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">22</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">26</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/x4297"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎购买Helldivers2</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Overview"><span class="toc-number">1.</span> <span class="toc-text">Overview</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BD%E5%B9%B6%E5%AE%89%E8%A3%85"><span class="toc-number">2.</span> <span class="toc-text">下载并安装</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E6%BF%80%E6%B4%BB%E7%A0%81%E4%BB%A5%E5%8F%8A%E6%8F%92%E4%BB%B6%E9%9B%86"><span class="toc-number">3.</span> <span class="toc-text">获取激活码以及插件集</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A6%BB%E7%BA%BF%E6%BF%80%E6%B4%BB"><span class="toc-number">4.</span> <span class="toc-text">离线激活</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90"><span class="toc-number">5.</span> <span class="toc-text">修复文件权限</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/05/nessu%E5%AE%89%E8%A3%85/" title="nessus安装">nessus安装</a><time datetime="2026-01-05T15:00:00.000Z" title="发表于 2026-01-05 23:00:00">2026-01-05</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/09/20/python%E5%8C%85%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7uv/" title="python包管理工具uv">python包管理工具uv</a><time datetime="2025-09-20T13:00:00.000Z" title="发表于 2025-09-20 21:00:00">2025-09-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/08/31/%E5%9F%BA%E4%BA%8Eaiohttp%E7%9A%84%E7%99%BB%E5%BD%95%E6%9A%B4%E5%8A%9B%E7%A0%B4%E8%A7%A3%E7%A8%8B%E5%BA%8F/" title="基于aiohttp的登录暴力破解程序">基于aiohttp的登录暴力破解程序</a><time datetime="2025-08-31T04:00:00.000Z" title="发表于 2025-08-31 12:00:00">2025-08-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/08/31/RSA%E5%8E%9F%E7%90%86%E6%8E%A8%E5%AF%BC%E5%8F%8A%E5%B8%B8%E8%A7%81%E6%94%BB%E5%87%BB%E6%96%B9%E6%B3%95/" title="RSA原理推导及常见攻击方法">RSA原理推导及常见攻击方法</a><time datetime="2025-08-31T04:00:00.000Z" title="发表于 2025-08-31 12:00:00">2025-08-31</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/08/12/web%E7%8B%97%E5%A4%87%E5%BF%98%E5%BD%95/" title="web狗备忘录">web狗备忘录</a><time datetime="2025-08-12T12:00:00.000Z" title="发表于 2025-08-12 20:00:00">2025-08-12</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2026 By x4297</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.3</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
